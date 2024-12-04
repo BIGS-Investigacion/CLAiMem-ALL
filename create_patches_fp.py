@@ -216,9 +216,11 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 		patch_times += patch_time_elapsed
 		stitch_times += stitch_time_elapsed
 
-	seg_times /= total
-	patch_times /= total
-	stitch_times /= total
+	if total>0:	
+		seg_times /= total
+		patch_times /= total
+		stitch_times /= total
+
 
 	df.to_csv(os.path.join(save_dir, 'process_list_autogen.csv'), index=False)
 	print("average segmentation time in s per slide: {}".format(seg_times))

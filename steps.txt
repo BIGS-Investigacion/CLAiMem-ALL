@@ -1,0 +1,4 @@
+source route_to_conda/bin/activate
+conda env create -f env.yml
+conda activate clam_latest
+python create_patches_fp.py --source /media/jorge/Expansion/medicina/patologia_digital/datos/histology/perfil_molecular/publicas/TCGA-BRCA/diagnostico --save_dir ./results --patch_size 256 --preset tcga.csv --seg --patch --stitch
