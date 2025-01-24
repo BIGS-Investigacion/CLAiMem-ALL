@@ -35,7 +35,7 @@ def has_UNI():
     except Exception as e:
         print(e)
     return HAS_UNI, UNI_CKPT_PATH
-        
+
 def get_encoder(model_name, target_img_size=224):
     #TODO: add support for other models
     print('loading model checkpoint')
@@ -48,6 +48,30 @@ def get_encoder(model_name, target_img_size=224):
                             init_values=1e-5, 
                             num_classes=0, 
                             dynamic_img_size=True)
+        
+        model.load_state_dict(torch.load(UNI_CKPT_PATH, map_location="cpu"), strict=True)
+    elif model_name == 'uni_v2':
+        HAS_UNI, UNI_CKPT_PATH = has_UNI()
+        assert HAS_UNI, 'UNI is not available'
+        timm_kwargs = {
+            'model_name': 'vit_giant_patch14_224',
+            'img_size': 224, 
+            'patch_size': 14, 
+            'depth': 24,
+            'num_heads': 24,
+            'init_values': 1e-5, 
+            'embed_dim': 1536,
+            'mlp_ratio': 2.66667*2,
+            'num_classes': 0, 
+            'no_embed_class': True,
+            'mlp_layer': timm.layers.SwiGLUPacked, 
+            'act_layer': torch.nn.SiLU, 
+            'reg_tokens': 8, 
+            'dynamic_img_size': True
+        }
+        model = timm.create_model(
+            pretrained=False, **timm_kwargs
+        )
         model.load_state_dict(torch.load(UNI_CKPT_PATH, map_location="cpu"), strict=True)
     elif model_name == 'conch_v1':
         HAS_CONCH, CONCH_CKPT_PATH = has_CONCH()
