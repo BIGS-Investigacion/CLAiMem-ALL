@@ -3,3 +3,4 @@ __pycache__/
 notebooks
 tcga_sample
 tcga_sample_results
+checkpoints
