@@ -37,6 +37,7 @@ def has_UNI():
     return HAS_UNI, UNI_CKPT_PATH
         
 def get_encoder(model_name, target_img_size=224):
+    #TODO: add support for other models
     print('loading model checkpoint')
     if model_name == 'resnet50_trunc':
         model = TimmCNNEncoder()

@@ -94,27 +94,30 @@ if __name__ == '__main__':
 			print('skipped {}'.format(slide_id))
 			continue 
 
-		output_path = os.path.join(args.feat_dir, 'h5_files', bag_name)
-		time_start = time.time()
-		wsi = openslide.open_slide(slide_file_path)
-		dataset = Whole_Slide_Bag_FP(file_path=h5_file_path, 
-							   		 wsi=wsi, 
-									 img_transforms=img_transforms)
+		try:
+			output_path = os.path.join(args.feat_dir, 'h5_files', bag_name)
+			time_start = time.time()
+			wsi = openslide.open_slide(slide_file_path)
+			dataset = Whole_Slide_Bag_FP(file_path=h5_file_path, 
+										wsi=wsi, 
+										img_transforms=img_transforms)
 
-		loader = DataLoader(dataset=dataset, batch_size=args.batch_size, **loader_kwargs)
-		output_file_path = compute_w_loader(output_path, loader = loader, model = model, verbose = 1)
+			loader = DataLoader(dataset=dataset, batch_size=args.batch_size, **loader_kwargs)
+			output_file_path = compute_w_loader(output_path, loader = loader, model = model, verbose = 1)
 
-		time_elapsed = time.time() - time_start
-		print('\ncomputing features for {} took {} s'.format(output_file_path, time_elapsed))
+			time_elapsed = time.time() - time_start
+			print('\ncomputing features for {} took {} s'.format(output_file_path, time_elapsed))
 
-		with h5py.File(output_file_path, "r") as file:
-			features = file['features'][:]
-			print('features size: ', features.shape)
-			print('coordinates size: ', file['coords'].shape)
+			with h5py.File(output_file_path, "r") as file:
+				features = file['features'][:]
+				print('features size: ', features.shape)
+				print('coordinates size: ', file['coords'].shape)
 
-		features = torch.from_numpy(features)
-		bag_base, _ = os.path.splitext(bag_name)
-		torch.save(features, os.path.join(args.feat_dir, 'pt_files', bag_base+'.pt'))
+			features = torch.from_numpy(features)
+			bag_base, _ = os.path.splitext(bag_name)
+			torch.save(features, os.path.join(args.feat_dir, 'pt_files', bag_base+'.pt'))
+		except Exception as e:
+			print(e)
 
 
 
