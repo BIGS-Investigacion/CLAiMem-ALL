@@ -22,5 +22,10 @@ MODEL2CONSTANTS = {
 	{
 		"mean": OPENAI_MEAN,
 		"std": OPENAI_STD
+	},
+    "ctranspath":
+    {
+		"mean": IMAGENET_MEAN,
+		"std": IMAGENET_STD
 	}
 }

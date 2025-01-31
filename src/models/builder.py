@@ -1,10 +1,26 @@
 import os
 from functools import partial
 import timm
+
+from models.ctran import ctranspath
 from .timm_wrapper import TimmCNNEncoder
 import torch
+import torch.nn as nn
 from utils.constants import MODEL2CONSTANTS
 from utils.transform_utils import get_eval_transforms
+
+def has_GENERIC():
+    HAS_GENERIC = False
+    GENERIC_CKPT_PATH = ''
+    try:
+        if 'GENERIC_CKPT_PATH' not in os.environ:
+            raise ValueError('GENERIC_CKPT_PATH not set')
+        HAS_GENERIC = True
+        GENERIC_CKPT_PATH = os.environ['GENERIC_CKPT_PATH']
+    except Exception as e:
+        print(e)
+        print('GENERIC not installed or GENERIC_CKPT_PATH not set')
+    return HAS_GENERIC, GENERIC_CKPT_PATH
 
 def has_CONCH():
     HAS_CONCH = False
@@ -79,6 +95,12 @@ def get_encoder(model_name, target_img_size=224):
         from conch.open_clip_custom import create_model_from_pretrained
         model, _ = create_model_from_pretrained("conch_ViT-B-16", CONCH_CKPT_PATH)
         model.forward = partial(model.encode_image, proj_contrast=False, normalize=False)
+    elif model_name == 'ctranspath':
+        HAS_GENERIC, GENERIC_CKPT_PATH = has_GENERIC()
+        assert HAS_GENERIC, 'CtransPath is not available'
+        model = ctranspath()
+        model.head = nn.Identity()
+        model.load_state_dict(torch.load(GENERIC_CKPT_PATH, map_location="cpu")['model'], strict=True)
     else:
         raise NotImplementedError('model {} not implemented'.format(model_name))
     
