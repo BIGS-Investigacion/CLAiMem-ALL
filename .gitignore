@@ -4,5 +4,4 @@ notebooks
 tcga_sample
 tcga_sample_results
 checkpoint
-src/timm_0_5_4
 .env
