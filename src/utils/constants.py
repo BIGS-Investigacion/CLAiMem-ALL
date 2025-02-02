@@ -32,5 +32,10 @@ MODEL2CONSTANTS = {
     {
 		"mean": IMAGENET_MEAN,
 		"std": IMAGENET_STD
+	}, 
+    "provgigapath":
+	{
+		"mean": IMAGENET_MEAN,
+		"std": IMAGENET_STD
 	}
 }

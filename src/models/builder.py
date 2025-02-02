@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 from utils.constants import MODEL2CONSTANTS
 from utils.transform_utils import get_eval_transforms
+from timm_1_0_14 import timm as timm1014
 
 def has_GENERIC():
     HAS_GENERIC = False
@@ -109,10 +110,12 @@ def get_encoder(model_name, target_img_size=224):
         pretext_model = torch.load(GENERIC_CKPT_PATH)
         model.fc = nn.Identity()
         model.load_state_dict(pretext_model, strict=True)
+    elif model_name == 'provgigapath':
+        model = timm1014.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
     else:
         raise NotImplementedError('model {} not implemented'.format(model_name))
     
-    print(model)
+    #print(model)
     constants = MODEL2CONSTANTS[model_name]
     img_transforms = get_eval_transforms(mean=constants['mean'],
                                          std=constants['std'],
