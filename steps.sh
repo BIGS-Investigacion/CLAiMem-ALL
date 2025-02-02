@@ -36,7 +36,14 @@ CUDA_DEV=0
 #FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_uni_2
 #CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name uni_v2
 
-export GENERIC_CKPT_PATH=checkpoint/ctranspath/ctranspath.pth
+#Download pretrained model  ctranspath.pth from https://github.com/Xiyue-Wang/TransPath.git
+#export GENERIC_CKPT_PATH=checkpoint/ctranspath/ctranspath.pth
+#BATCH_SIZE=256
+#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_ctranspath
+#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name ctranspath
+
+#Download pretrained model best_ckpt.pth from https://github.com/Xiyue-Wang/RetCCL
+export GENERIC_CKPT_PATH=checkpoint/retccl/best_ckpt.pth
 BATCH_SIZE=512
-FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_ctranspath
-CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name ctranspath
+FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_retccl
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name retccl

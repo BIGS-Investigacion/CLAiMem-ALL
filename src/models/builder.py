@@ -3,6 +3,7 @@ from functools import partial
 import timm
 
 from models.ctran import ctranspath
+from models.retccl import resnet50
 from .timm_wrapper import TimmCNNEncoder
 import torch
 import torch.nn as nn
@@ -101,6 +102,13 @@ def get_encoder(model_name, target_img_size=224):
         model = ctranspath()
         model.head = nn.Identity()
         model.load_state_dict(torch.load(GENERIC_CKPT_PATH, map_location="cpu")['model'], strict=True)
+    elif model_name == 'retccl':
+        HAS_GENERIC, GENERIC_CKPT_PATH = has_GENERIC()
+        assert HAS_GENERIC, 'RetCCL is not available'
+        model = resnet50(num_classes=128,mlp=False, two_branch=False, normlinear=True)
+        pretext_model = torch.load(GENERIC_CKPT_PATH)
+        model.fc = nn.Identity()
+        model.load_state_dict(pretext_model, strict=True)
     else:
         raise NotImplementedError('model {} not implemented'.format(model_name))
     

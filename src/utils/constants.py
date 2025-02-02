@@ -27,5 +27,10 @@ MODEL2CONSTANTS = {
     {
 		"mean": IMAGENET_MEAN,
 		"std": IMAGENET_STD
+	},
+    "retccl":
+    {
+		"mean": IMAGENET_MEAN,
+		"std": IMAGENET_STD
 	}
 }
