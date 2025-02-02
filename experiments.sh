@@ -18,6 +18,8 @@ BATCH_SIZE=512
 SLIDE_EXT=.svs
 CUDA_DEV=0
 
+#python src/big_auxiliar/downloader.py
+
 #FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_cnn
 #CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT
 
