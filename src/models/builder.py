@@ -8,7 +8,7 @@ from .timm_wrapper import TimmCNNEncoder
 import torch
 import torch.nn as nn
 from utils.constants import MODEL2CONSTANTS
-from utils.transform_utils import get_eval_transforms
+from utils.transform_utils import get_eval_gigapath_transforms, get_eval_transforms
 from timm_1_0_14 import timm as timm1014
 
 def has_GENERIC():
@@ -56,7 +56,10 @@ def has_UNI():
 
 def get_encoder(model_name, target_img_size=224):
     #TODO: add support for other models
-    print('loading model checkpoint')
+    #print('loading model checkpoint')
+    img_transforms = None
+    model = None
+
     if model_name == 'resnet50_trunc':
         model = TimmCNNEncoder()
     elif model_name == 'uni_v1':
@@ -112,13 +115,18 @@ def get_encoder(model_name, target_img_size=224):
         model.load_state_dict(pretext_model, strict=True)
     elif model_name == 'provgigapath':
         model = timm1014.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
+        constants = MODEL2CONSTANTS['provgigapath']
+        img_transforms = get_eval_gigapath_transforms(mean=constants['mean'],
+                                            std=constants['std'],
+                                            target_img_size = target_img_size)
     else:
         raise NotImplementedError('model {} not implemented'.format(model_name))
     
     #print(model)
-    constants = MODEL2CONSTANTS[model_name]
-    img_transforms = get_eval_transforms(mean=constants['mean'],
-                                         std=constants['std'],
-                                         target_img_size = target_img_size)
+    if img_transforms is None:
+        constants = MODEL2CONSTANTS[model_name]
+        img_transforms = get_eval_transforms(mean=constants['mean'],
+                                            std=constants['std'],
+                                            target_img_size = target_img_size)
 
     return model, img_transforms
