@@ -1,5 +1,17 @@
 from torchvision import transforms
 
+
+class PhikonCompose(transforms.Compose):
+    def __init__(self, auto_image_processor):
+        self.transforms = auto_image_processor
+
+    def __call__(self, img):
+        
+        return self.transforms(img, return_tensors = 'pt')
+
+    def __repr__(self) -> str:
+        return str(self.transforms)
+
 def get_eval_gigapath_transforms(mean, std, target_img_size = -1):
 	trsforms = []
 	trsforms.append(transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC))

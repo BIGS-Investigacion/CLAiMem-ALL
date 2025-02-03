@@ -3,13 +3,16 @@ from functools import partial
 import timm
 
 from models.ctran import ctranspath
+from models.phikon import PhikonWrapper
 from models.retccl import resnet50
 from .timm_wrapper import TimmCNNEncoder
 import torch
 import torch.nn as nn
 from utils.constants import MODEL2CONSTANTS
-from utils.transform_utils import get_eval_gigapath_transforms, get_eval_transforms
+from utils.transform_utils import PhikonCompose, get_eval_gigapath_transforms, get_eval_transforms
 from timm_1_0_14 import timm as timm1014
+from transformers import AutoImageProcessor, AutoModel
+
 
 def has_GENERIC():
     HAS_GENERIC = False
@@ -119,6 +122,11 @@ def get_encoder(model_name, target_img_size=224):
         img_transforms = get_eval_gigapath_transforms(mean=constants['mean'],
                                             std=constants['std'],
                                             target_img_size = target_img_size)
+    elif model_name == 'phikon':
+        model = PhikonWrapper(AutoModel.from_pretrained("owkin/phikon-v2"))
+        img_transforms = PhikonCompose(AutoImageProcessor.from_pretrained("owkin/phikon-v2"))
+        #TODO add support for phikon-v2
+        raise NotImplementedError('Phikon-v2 not implemented')
     else:
         raise NotImplementedError('model {} not implemented'.format(model_name))
     
