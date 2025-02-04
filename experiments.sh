@@ -19,24 +19,9 @@ SLIDE_EXT=.svs
 CUDA_DEV=0
 
 #python src/big_auxiliar/downloader.py
-
+#BATCH_SIZE=256
 #FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_cnn
 #CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT
-
-#export CONCH_CKPT_PATH=checkpoint/conch/pytorch_model.bin
-#BATCH_SIZE=512
-#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_conch
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name conch_v1
-
-#export UNI_CKPT_PATH=checkpoint/uni/pytorch_model.bin
-#BATCH_SIZE=500
-#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_uni
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name uni_v1
-
-#export UNI_CKPT_PATH=checkpoint/uni_2/pytorch_model.bin
-#BATCH_SIZE=128
-#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_uni_2
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name uni_v2
 
 #Download pretrained model  ctranspath.pth from https://github.com/Xiyue-Wang/TransPath.git
 #export GENERIC_CKPT_PATH=checkpoint/ctranspath/ctranspath.pth
@@ -46,16 +31,36 @@ CUDA_DEV=0
 
 #Download pretrained model best_ckpt.pth from https://github.com/Xiyue-Wang/RetCCL
 #export GENERIC_CKPT_PATH=checkpoint/retccl/best_ckpt.pth
-#BATCH_SIZE=512
+#BATCH_SIZE=256
 #FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_retccl
 #CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name retccl
 
-#BATCH_SIZE=128
+#export CONCH_CKPT_PATH=checkpoint/conch/pytorch_model.bin
+#BATCH_SIZE=256
+#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_conch
+#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name conch_v1
+
+#export UNI_CKPT_PATH=checkpoint/uni/pytorch_model.bin
+#BATCH_SIZE=256
+#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_uni
+#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name uni_v1
+
+#BATCH_SIZE=64
 #FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_provgigapath
 #CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name provgigapath
-
-#TODO: Musk
 
 BATCH_SIZE=256
 FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_phikon
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name phikon
+
+#BATCH_SIZE=64
+#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_musk
+#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name musk
+
+#export UNI_CKPT_PATH=checkpoint/uni_2/pytorch_model.bin
+#BATCH_SIZE=128
+#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_uni_2
+#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name uni_v2
+
+
+
