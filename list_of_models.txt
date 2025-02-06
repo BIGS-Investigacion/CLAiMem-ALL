@@ -1,12 +1,8 @@
 #HF Models
-conch:MahmoodLab/CONCH
-uni:MahmoodLab/UNI
 titan:MahmoodLab/TITAN
 bioclip:imageomics/bioclip
 biomed:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
 biomedparse:microsoft/BiomedParse
-ctranspath:1aurent/swin_tiny_patch4_window7_224.CTransPath
-gigapath:prov-gigapath/prov-gigapath
 plip:vinid/plip
 remedis:openai/clip-vit-base-patch16
 
