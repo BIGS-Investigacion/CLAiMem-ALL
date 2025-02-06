@@ -62,13 +62,16 @@ def has_UNI():
 
 def get_encoder(model_name, target_img_size=224):
     #TODO: add support for other models
-    #print('loading model checkpoint')
+
     img_transforms = None
     model = None
-    constants = MODEL2CONSTANTS[model_name]
     
     if model_name == 'resnet50_trunc':
         model = TimmCNNEncoder()
+        constants = MODEL2CONSTANTS[model_name]
+        img_transforms = get_eval_transforms(mean=constants['mean'],
+                                            std=constants['std'],
+                                            target_img_size = target_img_size)
     elif model_name == 'uni_v1':
         HAS_UNI, UNI_CKPT_PATH = has_UNI()
         assert HAS_UNI, 'UNI is not available'
@@ -76,8 +79,11 @@ def get_encoder(model_name, target_img_size=224):
                             init_values=1e-5, 
                             num_classes=0, 
                             dynamic_img_size=True)
-        
         model.load_state_dict(torch.load(UNI_CKPT_PATH, map_location="cpu"), strict=True)
+        constants = MODEL2CONSTANTS[model_name]
+        img_transforms = get_eval_transforms(mean=constants['mean'],
+                                            std=constants['std'],
+                                            target_img_size = target_img_size)
     elif model_name == 'uni_v2':
         HAS_UNI, UNI_CKPT_PATH = has_UNI()
         assert HAS_UNI, 'UNI is not available'
@@ -101,18 +107,30 @@ def get_encoder(model_name, target_img_size=224):
             pretrained=False, **timm_kwargs
         )
         model.load_state_dict(torch.load(UNI_CKPT_PATH, map_location="cpu"), strict=True)
+        constants = MODEL2CONSTANTS[model_name]
+        img_transforms = get_eval_transforms(mean=constants['mean'],
+                                            std=constants['std'],
+                                            target_img_size = target_img_size)
     elif model_name == 'conch_v1':
         HAS_CONCH, CONCH_CKPT_PATH = has_CONCH()
         assert HAS_CONCH, 'CONCH is not available'
         from conch.open_clip_custom import create_model_from_pretrained
         model, _ = create_model_from_pretrained("conch_ViT-B-16", CONCH_CKPT_PATH)
         model.forward = partial(model.encode_image, proj_contrast=False, normalize=False)
+        constants = MODEL2CONSTANTS[model_name]
+        img_transforms = get_eval_transforms(mean=constants['mean'],
+                                            std=constants['std'],
+                                            target_img_size = target_img_size)
     elif model_name == 'ctranspath':
         HAS_GENERIC, GENERIC_CKPT_PATH = has_GENERIC()
         assert HAS_GENERIC, 'CtransPath is not available'
         model = ctranspath()
         model.head = nn.Identity()
         model.load_state_dict(torch.load(GENERIC_CKPT_PATH, map_location="cpu")['model'], strict=True)
+        constants = MODEL2CONSTANTS[model_name]
+        img_transforms = get_eval_transforms(mean=constants['mean'],
+                                            std=constants['std'],
+                                            target_img_size = target_img_size)
     elif model_name == 'retccl':
         HAS_GENERIC, GENERIC_CKPT_PATH = has_GENERIC()
         assert HAS_GENERIC, 'RetCCL is not available'
@@ -120,9 +138,13 @@ def get_encoder(model_name, target_img_size=224):
         pretext_model = torch.load(GENERIC_CKPT_PATH)
         model.fc = nn.Identity()
         model.load_state_dict(pretext_model, strict=True)
+        constants = MODEL2CONSTANTS[model_name]
+        img_transforms = get_eval_transforms(mean=constants['mean'],
+                                            std=constants['std'],
+                                            target_img_size = target_img_size)
     elif model_name == 'provgigapath':
         model = timm1014.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
-        constants = MODEL2CONSTANTS['provgigapath']
+        constants = MODEL2CONSTANTS[model_name]
         img_transforms = get_eval_gigapath_transforms(mean=constants['mean'],
                                             std=constants['std'],
                                             target_img_size = target_img_size)
@@ -131,17 +153,11 @@ def get_encoder(model_name, target_img_size=224):
         img_transforms = PhikonCompose()
     elif model_name == 'musk':
         model = MUSKWrapper()
+        constants = MODEL2CONSTANTS[model_name]
         img_transforms = get_eval_musk_transforms(mean=constants['mean'],
                                             std=constants['std'],
                                             target_img_size = target_img_size)
     else:
         raise NotImplementedError('model {} not implemented'.format(model_name))
-    
-    #print(model)
-    if img_transforms is None:
-        
-        img_transforms = get_eval_transforms(mean=constants['mean'],
-                                            std=constants['std'],
-                                            target_img_size = target_img_size)
 
     return model, img_transforms
