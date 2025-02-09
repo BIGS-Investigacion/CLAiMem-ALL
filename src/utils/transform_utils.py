@@ -1,9 +1,9 @@
 from torchvision import transforms
-from transformers import AutoImageProcessor
 
-class PhikonCompose(transforms.Compose):
-    def __init__(self):
-        self.transforms = AutoImageProcessor.from_pretrained("owkin/phikon-v2")
+
+class AutoImageProcessorCompose(transforms.Compose):
+    def __init__(self, auto_image_processor):
+        self.transforms = auto_image_processor
 
     def __call__(self, img):
         return self.transforms(img, return_tensors = 'pt')

@@ -4,7 +4,7 @@ import timm
 
 from models.ctran import ctranspath
 from models.musk import MUSKWrapper
-from models.phikon import PhikonWrapper
+from models.automodel_wrapper import AutoModelWrapper
 from models.retccl import resnet50
 from models.virchow import VirchowWrapper
 from timm_1_0_14.timm.data.config import resolve_data_config
@@ -13,14 +13,13 @@ from .timm_wrapper import TimmCNNEncoder
 
 from timm_1_0_14 import timm as timm1014
 
-import musk.utils as utils
-
+from transformers import AutoImageProcessor, AutoModel
 
 import torch
 import torch.nn as nn
 
 from utils.constants import MODEL2CONSTANTS
-from utils.transform_utils import PhikonCompose, get_eval_gigapath_transforms, get_eval_musk_transforms, get_eval_transforms
+from utils.transform_utils import AutoImageProcessorCompose, get_eval_gigapath_transforms, get_eval_musk_transforms, get_eval_transforms
 
 
 def has_GENERIC():
@@ -155,8 +154,8 @@ def get_encoder(model_name, target_img_size=224):
                                             std=constants['std'],
                                             target_img_size = target_img_size)
     elif model_name == 'phikon':
-        model = PhikonWrapper()
-        img_transforms = PhikonCompose()
+        model = AutoModelWrapper(AutoModel.from_pretrained("owkin/phikon-v2"))
+        img_transforms = AutoImageProcessorCompose(AutoImageProcessor.from_pretrained("owkin/phikon-v2"))
 
     elif model_name == 'musk':
         model = MUSKWrapper()
@@ -164,12 +163,23 @@ def get_encoder(model_name, target_img_size=224):
         img_transforms = get_eval_musk_transforms(mean=constants['mean'],
                                             std=constants['std'],
                                             target_img_size = target_img_size)
-        
     elif model_name == 'virchow':
         # need to specify MLP layer and activation function for proper init
         model = VirchowWrapper()
         sub_model = model.get_model()
         img_transforms = create_transform(**resolve_data_config(sub_model.pretrained_cfg, model=sub_model))
+    elif model_name == 'hoptimus0':
+        model = timm1014.create_model("hf-hub:bioptimus/H-optimus-0", pretrained=True,init_values=1e-5, dynamic_img_size=False)
+        constants = MODEL2CONSTANTS[model_name]
+        img_transforms = get_eval_transforms(mean=constants['mean'],
+                                            std=constants['std'],
+                                            target_img_size = target_img_size)
+    elif model_name == 'hibou_l':
+        model = AutoModelWrapper(AutoModel.from_pretrained("histai/hibou-L", trust_remote_code=True))
+        img_transforms = AutoImageProcessorCompose(AutoImageProcessor.from_pretrained("histai/hibou-L", trust_remote_code=True))
+    elif model_name == 'hibou_b':
+        model = AutoModelWrapper(AutoModel.from_pretrained("histai/hibou-b", trust_remote_code=True))
+        img_transforms = AutoImageProcessorCompose(AutoImageProcessor.from_pretrained("histai/hibou-b", trust_remote_code=True))
     else:
         raise NotImplementedError('model {} not implemented'.format(model_name))
 

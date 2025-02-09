@@ -1,12 +1,11 @@
 import torch
 import torch.nn as nn
-from transformers import AutoModel
 
-class PhikonWrapper(nn.Module):
-    def __init__(self):
+class AutoModelWrapper(nn.Module):
+    def __init__(self, auto_model):
         super().__init__()
         
-        self.model = AutoModel.from_pretrained("owkin/phikon-v2")
+        self.model = auto_model
         self.model.eval()
 
     def forward(self, inputs):

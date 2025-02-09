@@ -1,49 +1,45 @@
-from timm.data.constants import IMAGENET_INCEPTION_MEAN, IMAGENET_INCEPTION_STD
-
-IMAGENET_MEAN = [0.485, 0.456, 0.406]
-IMAGENET_STD = [0.229, 0.224, 0.225]
-OPENAI_MEAN = [0.48145466, 0.4578275, 0.40821073]
-OPENAI_STD = [0.26862954, 0.26130258, 0.27577711]
-
-
+from timm.data.constants import *
 
 MODEL2CONSTANTS = {
 	"resnet50_trunc": {
-		"mean": IMAGENET_MEAN,
-		"std": IMAGENET_STD
+		"mean": IMAGENET_DEFAULT_MEAN,
+		"std": IMAGENET_DEFAULT_STD
 	},
 	"uni_v1":
 	{
-		"mean": IMAGENET_MEAN,
-		"std": IMAGENET_STD
+		"mean": IMAGENET_DEFAULT_MEAN,
+		"std": IMAGENET_DEFAULT_STD
 	},
     "uni_v2":
 	{
-		"mean": IMAGENET_MEAN,
-		"std": IMAGENET_STD
+		"mean": IMAGENET_DEFAULT_MEAN,
+		"std": IMAGENET_DEFAULT_STD
 	},
 	"conch_v1":
 	{
-		"mean": OPENAI_MEAN,
-		"std": OPENAI_STD
+		"mean": OPENAI_CLIP_MEAN,
+		"std": OPENAI_CLIP_STD
 	},
     "ctranspath":
     {
-		"mean": IMAGENET_MEAN,
-		"std": IMAGENET_STD
+		"mean": IMAGENET_DEFAULT_MEAN,
+		"std": IMAGENET_DEFAULT_STD
 	},
     "retccl":
     {
-		"mean": IMAGENET_MEAN,
-		"std": IMAGENET_STD
+		"mean": IMAGENET_DEFAULT_MEAN,
+		"std": IMAGENET_DEFAULT_STD
 	}, 
     "provgigapath":
 	{
-		"mean": IMAGENET_MEAN,
-		"std": IMAGENET_STD
+		"mean": IMAGENET_DEFAULT_MEAN,
+		"std": IMAGENET_DEFAULT_STD
 	},
     "musk":{
 		"mean": IMAGENET_INCEPTION_MEAN,
 		"std": IMAGENET_INCEPTION_STD
+	},'hoptimus0':{	
+        "mean": (0.707223, 0.578729, 0.703617),
+		"std": (0.211883, 0.230117, 0.177517)
 	}
 }
