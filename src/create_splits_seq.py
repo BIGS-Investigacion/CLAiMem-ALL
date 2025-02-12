@@ -5,6 +5,8 @@ from dataset_modules.dataset_generic import Generic_WSI_Classification_Dataset, 
 import argparse
 import numpy as np
 
+#TODO: Configuration should be moved to a config file
+
 parser = argparse.ArgumentParser(description='Creating splits for whole slide classification')
 parser.add_argument('--label_frac', type=float, default= 1.0,
                     help='fraction of labels (default: 1)')
@@ -22,7 +24,7 @@ args = parser.parse_args()
 
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'dataset_csv/tumor_vs_normal_dummy_clean.csv',
+    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/tumor_vs_normal_dummy_clean.csv',
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
@@ -32,7 +34,7 @@ if args.task == 'task_1_tumor_vs_normal':
 
 elif args.task == 'task_2_tumor_subtyping':
     args.n_classes=3
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'dataset_csv/tumor_subtyping_dummy_clean.csv',
+    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/tumor_subtyping_dummy_clean.csv',
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
@@ -43,11 +45,11 @@ elif args.task == 'task_2_tumor_subtyping':
     
 elif args.task == 'task_3_tcga_breast_mollecular_subtyping':
     args.n_classes=5
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'dataset_csv/tcga-subtype.csv',
+    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/tcga-subtype_short.csv',
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'normal-like':0, 'basal':1, 'her2e':2, 'lumb':3, 'lumb':4},
+                            label_dict = {'normal-like':0, 'basal':1, 'her2e':2, 'luma':3, 'lumb':4},
                             patient_strat= True,
                             patient_voting='maj',
                             ignore=[])

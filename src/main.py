@@ -1,21 +1,15 @@
 from __future__ import print_function
-
 import argparse
-import pdb
 import os
-import math
 
 # internal imports
-from utils.file_utils import save_pkl, load_pkl
+from utils.file_utils import save_pkl
 from utils.utils import *
 from utils.core_utils import train
-from dataset_modules.dataset_generic import Generic_WSI_Classification_Dataset, Generic_MIL_Dataset
+from dataset_modules.dataset_generic import Generic_MIL_Dataset
 
 # pytorch imports
 import torch
-from torch.utils.data import DataLoader, sampler
-import torch.nn as nn
-import torch.nn.functional as F
 
 import pandas as pd
 import numpy as np
@@ -98,7 +92,7 @@ parser.add_argument('--model_type', type=str, choices=['clam_sb', 'clam_mb', 'mi
 parser.add_argument('--exp_code', type=str, help='experiment code for saving results')
 parser.add_argument('--weighted_sample', action='store_true', default=False, help='enable weighted sampling')
 parser.add_argument('--model_size', type=str, choices=['small', 'big'], default='small', help='size of model, does not affect mil')
-parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping'])
+parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping', 'task_3_tcga_breast_mollecular_subtyping'])
 ### CLAM specific options
 parser.add_argument('--no_inst_cluster', action='store_true', default=False,
                      help='disable instance-level clustering')
@@ -152,9 +146,11 @@ if args.model_type in ['clam_sb', 'clam_mb']:
 
 print('\nLoad Dataset')
 
+#TODO: To be fixed. Config file should be used to execute tasks
+
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
-    dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_vs_normal_dummy_clean.csv',
+    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/tumor_vs_normal_dummy_clean.csv',
                             data_dir= os.path.join(args.data_root_dir, 'tumor_vs_normal_resnet_features'),
                             shuffle = False, 
                             seed = args.seed, 
@@ -165,12 +161,22 @@ if args.task == 'task_1_tumor_vs_normal':
 
 elif args.task == 'task_2_tumor_subtyping':
     args.n_classes=3
-    dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_subtyping_dummy_clean.csv',
+    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/tumor_subtyping_dummy_clean.csv',
                             data_dir= os.path.join(args.data_root_dir, 'tumor_subtyping_resnet_features'),
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
                             label_dict = {'subtype_1':0, 'subtype_2':1, 'subtype_3':2},
+                            patient_strat= False,
+                            ignore=[])
+elif args.task == 'task_3_tcga_breast_mollecular_subtyping':
+    args.n_classes=5
+    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/tcga-subtype_short.csv',
+                            data_dir= os.path.join(args.data_root_dir, 'database'),
+                            shuffle = False, 
+                            seed = args.seed, 
+                            print_info = True,
+                            label_dict = {'normal-like':0, 'basal':1, 'her2e':2, 'luma':3, 'lumb':4},
                             patient_strat= False,
                             ignore=[])
 
@@ -193,6 +199,7 @@ else:
     args.split_dir = os.path.join('splits', args.split_dir)
 
 print('split_dir: ', args.split_dir)
+print(args.split_dir)
 assert os.path.isdir(args.split_dir)
 
 settings.update({'split_dir': args.split_dir})

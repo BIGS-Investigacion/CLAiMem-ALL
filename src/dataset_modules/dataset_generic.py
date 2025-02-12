@@ -100,7 +100,9 @@ class Generic_WSI_Classification_Dataset(Dataset):
 			if patient_voting == 'max':
 				label = label.max() # get patient label (MIL convention)
 			elif patient_voting == 'maj':
-				label = stats.mode(label)[0]
+				unique_labels, counts = np.unique(label, return_counts=True)
+				label = unique_labels[np.argmax(counts)]
+				#label = stats.mode(label)[0]
 			else:
 				raise NotImplementedError
 			patient_labels.append(label)
