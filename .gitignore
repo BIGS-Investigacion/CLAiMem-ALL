@@ -5,3 +5,5 @@ tcga_sample
 tcga_sample_results
 checkpoint
 .env
+splits
+results
