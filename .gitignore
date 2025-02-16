@@ -7,3 +7,4 @@ checkpoint
 .env
 splits
 results
+data/processed
