@@ -3,7 +3,8 @@
 #conda activate clam_latest
 
 
-DATA_DIRECTORY=/media/jorge/SP_PHD_U3/perfil_molecular/publicas/CPTAC-BRCA/BRCA
+#DATA_DIRECTORY=/media/jorge/SP_PHD_U3/perfil_molecular/publicas/CPTAC-BRCA/BRCA
+DATA_DIRECTORY=/media/jorge/Expansion/medicina/patologia_digital/datos/histology/clasificacion_cancer/perfil_molecular/publicas/CPTAC-BRCA/BRCA
 #DATA_DIRECTORY=$DATA_ROOT_DIR/original/tcga_sample
 DATA_ROOT_DIR=data
 RESULT_DIRECTORY=$DATA_ROOT_DIR/processed/brca_sample
@@ -20,9 +21,9 @@ SLIDE_EXT=.svs
 CUDA_DEV=0
 
 python src/big_auxiliar/downloader.py
-BATCH_SIZE=256
-FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_cnn
-CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT
+#BATCH_SIZE=256
+#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_cnn
+#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT
 
 #Download pretrained model  ctranspath.pth from https://github.com/Xiyue-Wang/TransPath.git
 #export GENERIC_CKPT_PATH=checkpoint/ctranspath/ctranspath.pth
@@ -74,10 +75,10 @@ CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $
 #FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_musk
 #CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name musk
 
-#export UNI_CKPT_PATH=checkpoint/uni_2/pytorch_model.bin
-#BATCH_SIZE=128
-#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_uni_2
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name uni_v2
+export UNI_CKPT_PATH=checkpoint/uni_2/pytorch_model.bin
+BATCH_SIZE=128
+FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_uni_2
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name uni_v2
 
 
 
