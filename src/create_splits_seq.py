@@ -14,7 +14,7 @@ parser.add_argument('--seed', type=int, default=1,
                     help='random seed (default: 1)')
 parser.add_argument('--k', type=int, default=10,
                     help='number of splits (default: 10)')
-parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal', 'task_2_tumor_subtyping', 'task_3_tcga_breast_mollecular_subtyping'])
+parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal', 'task_2_tumor_subtyping', 'task_3_tcga_breast_mollecular_subtyping', 'task_4_brca_breast_mollecular_subtyping'])
 parser.add_argument('--val_frac', type=float, default= 0.1,
                     help='fraction of labels for validation (default: 0.1)')
 parser.add_argument('--test_frac', type=float, default= 0.1,
@@ -44,12 +44,22 @@ elif args.task == 'task_2_tumor_subtyping':
                             ignore=[])
     
 elif args.task == 'task_3_tcga_breast_mollecular_subtyping':
-    args.n_classes=5
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/tcga-subtype_short.csv',
+    args.n_classes=6
+    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/tcga-subtype.csv',
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'normal-like':0, 'basal':1, 'her2e':2, 'luma':3, 'lumb':4},
+                            label_dict = {'normal-like':0, 'basal':1, 'her2e':2, 'luma':3, 'lumb':4, 'clow':5},
+                            patient_strat= True,
+                            patient_voting='maj',
+                            ignore=[])
+elif args.task == 'task_4_brca_breast_mollecular_subtyping':
+    args.n_classes=5
+    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/brca-subtype.csv',
+                            shuffle = False, 
+                            seed = args.seed, 
+                            print_info = True,
+                            label_dict = {'normal-like':0, 'basal':1, 'her2':2, 'luma':3, 'lumb':4},
                             patient_strat= True,
                             patient_voting='maj',
                             ignore=[])

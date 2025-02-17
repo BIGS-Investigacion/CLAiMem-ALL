@@ -5,7 +5,6 @@
 
 #DATA_DIRECTORY=/media/jorge/SP_PHD_U3/perfil_molecular/publicas/CPTAC-BRCA/BRCA
 DATA_DIRECTORY=/media/jorge/Expansion/medicina/patologia_digital/datos/histology/clasificacion_cancer/perfil_molecular/publicas/CPTAC-BRCA/BRCA
-#DATA_DIRECTORY=$DATA_ROOT_DIR/original/tcga_sample
 DATA_ROOT_DIR=data
 RESULT_DIRECTORY=$DATA_ROOT_DIR/processed/brca_sample
 PATCH_SIZE=256
@@ -20,10 +19,28 @@ BATCH_SIZE=512
 SLIDE_EXT=.svs
 CUDA_DEV=0
 
+
 python src/bigs_auxiliar/downloader.py
-#BATCH_SIZE=256
-#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_cnn
+BATCH_SIZE=256
+FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_cnn
+
 #CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT
+
+K=10
+SEED=42
+
+python src/create_splits_seq.py --task task_4_brca_breast_mollecular_subtyping --seed $SEED --k $K
+
+DROP_OUT=0.25
+LR=2e-4
+EXP_CODE=brca_breast_mollecular_subtyping_resnet
+SPLIT_DIR=task_4_brca_breast_mollecular_subtyping_100
+DATA_ROOT_DIR=$FEATURES_DIRECTORY
+CUDA_VISIBLE_DEVICES=0 python src/main.py --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --exp_code $EXP_CODE --weighted_sample --bag_loss ce --inst_loss svm --task task_4_brca_breast_mollecular_subtyping --model_type clam_sb --log_data --subtyping --data_root_dir $DATA_ROOT_DIR --embed_dim 1024 --split_dir $SPLIT_DIR   
+
+#CUDA_VISIBLE_DEVICES=0 python eval.py --k 10 --models_exp_code task_4_brca_breast_mollecular_subtyping --save_exp_code task_4_brca_breast_mollecular_subtyping_CLAM_10_s1_cv --task task_4_brca_breast_mollecular_subtyping --model_type clam_sb --results_dir results --data_root_dir DATA_ROOT_DIR --embed_dim 1024
+
+#---------------------------------------OTHER MODELS---------------------------------------
 
 #Download pretrained model  ctranspath.pth from https://github.com/Xiyue-Wang/TransPath.git
 #export GENERIC_CKPT_PATH=checkpoint/ctranspath/ctranspath.pth
@@ -75,10 +92,8 @@ python src/bigs_auxiliar/downloader.py
 #FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_musk
 #CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name musk
 
-export UNI_CKPT_PATH=checkpoint/uni_2/pytorch_model.bin
-BATCH_SIZE=128
-FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_uni_2
-CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name uni_v2
-
-
+#export UNI_CKPT_PATH=checkpoint/uni_2/pytorch_model.bin
+#BATCH_SIZE=128
+#FEATURES_DIRECTORY=$RESULT_DIRECTORY/features_uni_2
+#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $DIR_TO_COORDS --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name uni_v2
 

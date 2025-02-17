@@ -210,7 +210,7 @@ def train(datasets, cur, args):
         acc, correct, count = acc_logger.get_summary(i)
         print('class {}: acc {}, correct {}/{}'.format(i, acc, correct, count))
 
-        if writer:
+        if acc and writer:
             writer.add_scalar('final/test_class_{}_acc'.format(i), acc, 0)
 
     if writer:

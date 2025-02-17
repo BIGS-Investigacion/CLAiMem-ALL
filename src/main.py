@@ -92,7 +92,7 @@ parser.add_argument('--model_type', type=str, choices=['clam_sb', 'clam_mb', 'mi
 parser.add_argument('--exp_code', type=str, help='experiment code for saving results')
 parser.add_argument('--weighted_sample', action='store_true', default=False, help='enable weighted sampling')
 parser.add_argument('--model_size', type=str, choices=['small', 'big'], default='small', help='size of model, does not affect mil')
-parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping', 'task_3_tcga_breast_mollecular_subtyping'])
+parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping', 'task_3_tcga_breast_mollecular_subtyping', 'task_4_brca_breast_mollecular_subtyping'])
 ### CLAM specific options
 parser.add_argument('--no_inst_cluster', action='store_true', default=False,
                      help='disable instance-level clustering')
@@ -170,13 +170,23 @@ elif args.task == 'task_2_tumor_subtyping':
                             patient_strat= False,
                             ignore=[])
 elif args.task == 'task_3_tcga_breast_mollecular_subtyping':
-    args.n_classes=5
-    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/tcga-subtype_short.csv',
-                            data_dir= os.path.join(args.data_root_dir, 'database'),
+    args.n_classes=6
+    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/tcga-subtype.csv',
+                            data_dir= args.data_root_dir,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'normal-like':0, 'basal':1, 'her2e':2, 'luma':3, 'lumb':4},
+                            label_dict = {'normal-like':0, 'basal':1, 'her2e':2, 'luma':3, 'lumb':4,'clow':5},
+                            patient_strat= False,
+                            ignore=[])
+elif args.task == 'task_4_brca_breast_mollecular_subtyping':
+    args.n_classes=5
+    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/brca-subtype.csv',
+                            data_dir= args.data_root_dir,
+                            shuffle = False, 
+                            seed = args.seed, 
+                            print_info = True,
+                            label_dict = {'normal-like':0, 'basal':1, 'her2':2, 'luma':3, 'lumb':4},
                             patient_strat= False,
                             ignore=[])
 
