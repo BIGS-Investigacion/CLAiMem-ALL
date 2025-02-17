@@ -10,10 +10,7 @@ Activate the environment:
 conda activate clam_latest
 ```
 
-If you want to use CONCH as the pretrained encoder, install the package in the environment by running the following command:
-```shell
-pip install git+https://github.com/Mahmoodlab/CONCH.git
-```
+Copy '.env example' and rename as '.env'. Include your HF_TOKEN to download models from Hugging Face repository.
 
 When done running experiments, to deactivate the environment:
 ```shell
