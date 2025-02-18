@@ -3,9 +3,10 @@ __pycache__/
 notebooks
 tcga_sample
 tcga_sample_results
-checkpoint
+.checkpoint
 .env
 splits
 results
 eval_results
 data/patches
+.features

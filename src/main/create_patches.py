@@ -258,7 +258,7 @@ if __name__ == '__main__':
 	patch_params = {'white_thresh': 5, 'black_thresh': 40, 'use_padding': True, 'contour_fn': 'four_pt'}
 
 	if args.preset:
-		preset_df = pd.read_csv(os.path.join('presets', args.preset))
+		preset_df = pd.read_csv(os.path.join('config/presets', args.preset))
 		for key in seg_params.keys():
 			seg_params[key] = preset_df.loc[0, key]
 
