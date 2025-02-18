@@ -8,4 +8,4 @@ checkpoint
 splits
 results
 eval_results
-data/processed
+data/patches
