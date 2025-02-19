@@ -5,7 +5,7 @@ tcga_sample
 tcga_sample_results
 .checkpoint
 .env
-splits
+.splits
 results
 eval_results
 data/patches
