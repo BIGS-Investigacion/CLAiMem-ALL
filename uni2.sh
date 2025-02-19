@@ -17,12 +17,12 @@ CUDA_DEV=1
 
 python src/bigs_auxiliar/downloader.py
 
-BATCH_SIZE=256
-#BATCH_SIZE=128
+BATCH_SIZE=128
 FEATURES_DIRECTORY=.features/features_uni_2
 TASK=task_4_brca_breast_mollecular_subtyping
 MODEL=uni_v2
 
+export UNI_CKPT_PATH='.checkpoint/uni_2/pytorch_model.bin'
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $PATCHES_DIRECTORY --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name $MODEL
 
 K=10
