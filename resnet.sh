@@ -2,7 +2,8 @@
 #conda env create -f env.yml
 #conda activate clam_latest
 
-DATA_DIRECTORY=/media/jorge/hd1/patologia_digital/data/publicas/CPTAC-BRCA/BRCA
+#DATA_DIRECTORY=/media/jorge/hd1/patologia_digital/data/publicas/CPTAC-BRCA/BRCA
+DATA_DIRECTORY=/media/jorge/SP_PHD_U3/perfil_molecular/publicas/CPTAC-BRCA/BRCA
 DATA_ROOT_DIR=data
 PATCHES_DIRECTORY=$DATA_ROOT_DIR/patches/brca_sample
 PATCH_SIZE=256
@@ -20,7 +21,7 @@ python src/bigs_auxiliar/downloader.py
 BATCH_SIZE=256
 FEATURES_DIRECTORY=.features/features_cnn
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $PATCHES_DIRECTORY --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $PATCHES_DIRECTORY --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT
 
 K=10
 SEED=42
@@ -39,7 +40,7 @@ EXP_CODE_SAVE=$MODELS_EXP_CODE\_cv_sum_up
 SPLIT_DIR=task_4_brca_breast_mollecular_subtyping_100
 BAG_LOSS=ce
 INST_LOSS=svm
-CLAM_MODEL_TYPE=clam_sb
+CLAM_MODEL_TYPE=mil
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEV  python src/main.py --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --exp_code $EXP_CODE --weighted_sample --bag_loss $BAG_LOSS --inst_loss $INST_LOSS --task $TASK --model_type $CLAM_MODEL_TYPE --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR
 
