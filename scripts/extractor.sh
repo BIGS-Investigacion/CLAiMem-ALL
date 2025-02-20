@@ -1,11 +1,11 @@
 DATABASE=example
 #DATA_DIRECTORY=/media/jorge/hd1/patologia_digital/data/publicas/CPTAC-BRCA/BRCA
 #DATA_DIRECTORY=/media/jorge/SP_PHD_U3/perfil_molecular/publicas/CPTAC-BRCA/BRCA
+CSV_FILE_NAME=data/dataset_csv/example.csv
 DATA_DIRECTORY=data/example
 PATCHES_DIRECTORY=.patches/$DATABASE
 PATCH_SIZE=256
 PRESET_CSV=tcga.csv
-CSV_FILE_NAME=data/dataset_csv/example.csv
 SLIDE_EXT=.svs
 CUDA_DEV=0
 
