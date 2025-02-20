@@ -6,7 +6,7 @@ tcga_sample_results
 .checkpoint
 .env
 .splits
-results
-eval_results
+.results
+.eval_results
 data/patches
 .features

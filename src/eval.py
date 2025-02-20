@@ -19,9 +19,9 @@ from utils.eval_utils import *
 parser = argparse.ArgumentParser(description='CLAM Evaluation Script')
 parser.add_argument('--data_root_dir', type=str, default=None,
                     help='data directory')
-parser.add_argument('--results_dir', type=str, default='./results',
+parser.add_argument('--results_dir', type=str, default='./.results',
                     help='relative path to results folder, i.e. '+
-                    'the directory containing models_exp_code relative to project root (default: ./results)')
+                    'the directory containing models_exp_code relative to project root (default: ./.results)')
 parser.add_argument('--save_exp_code', type=str, default=None,
                     help='experiment code to save eval results')
 parser.add_argument('--models_exp_code', type=str, default=None,
@@ -46,7 +46,7 @@ args = parser.parse_args()
 
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-args.save_dir = os.path.join('./eval_results', 'EVAL_' + str(args.save_exp_code))
+args.save_dir = os.path.join('./.eval_results', 'EVAL_' + str(args.save_exp_code))
 args.models_dir = os.path.join(args.results_dir, str(args.models_exp_code))
 
 os.makedirs(args.save_dir, exist_ok=True)
@@ -54,6 +54,7 @@ os.makedirs(args.save_dir, exist_ok=True)
 if args.splits_dir is None:
     args.splits_dir = args.models_dir
 
+print(args.models_dir)
 assert os.path.isdir(args.models_dir)
 assert os.path.isdir(args.splits_dir)
 
