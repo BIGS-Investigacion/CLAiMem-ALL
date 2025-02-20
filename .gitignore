@@ -1,12 +1,10 @@
 **/.DS_Store
 __pycache__/
-notebooks
-tcga_sample
-tcga_sample_results
 .checkpoint
 .env
 .splits
 .results
 .eval_results
-data/patches
+.patches
 .features
+data/example
