@@ -4,6 +4,7 @@ import pandas as pd
 from dataset_modules.dataset_generic import Generic_WSI_Classification_Dataset, Generic_MIL_Dataset, save_splits
 import argparse
 import numpy as np
+import json
 
 #TODO: Configuration should be moved to a config file
 
@@ -19,65 +20,62 @@ parser.add_argument('--val_frac', type=float, default= 0.1,
                     help='fraction of labels for validation (default: 0.1)')
 parser.add_argument('--test_frac', type=float, default= 0.1,
                     help='fraction of labels for test (default: 0.1)')
+parser.add_argument('--split_dir', type=str, default=None, 
+                    help='manually specify the directory of the set of splits to use, ' 
+                    +'instead of infering from the task and label_frac argument (default: None)')
+parser.add_argument('--csv_path', type=str, default=None, 
+                    help='manually specify the csv with the labels to use in classification (default: None)')
+parser.add_argument('--label_dict', type=str, default=None, 
+                    help='manually specify the labels associated with an index to be accessed (default: None)')
 
 args = parser.parse_args()
 
-if args.task == 'task_1_tumor_vs_normal':
-    args.n_classes=2
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/tumor_vs_normal_dummy_clean.csv',
+json_acceptable_string = args.label_dict.replace("'", "\"")
+labels = json.loads(json_acceptable_string)
+
+if len(labels)==2:
+    #args.n_classes=2
+    #'data/dataset_csv/tumor_vs_normal_dummy_clean.csv'
+    #{'normal_tissue':0, 'tumor_tissue':1}
+    dataset = Generic_WSI_Classification_Dataset(csv_path = args.csv_path,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'normal_tissue':0, 'tumor_tissue':1},
+                            label_dict = labels,
                             patient_strat=True,
                             ignore=[])
 
-elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=3
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/tumor_subtyping_dummy_clean.csv',
+else: 
+    #args.n_classes=3
+    #'data/dataset_csv/tumor_subtyping_dummy_clean.csv'
+    #{'subtype_1':0, 'subtype_2':1, 'subtype_3':2}
+    dataset = Generic_WSI_Classification_Dataset(csv_path = args.csv_path,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'subtype_1':0, 'subtype_2':1, 'subtype_3':2},
+                            label_dict = labels,
                             patient_strat= True,
                             patient_voting='maj',
                             ignore=[])
-    
-elif args.task == 'task_3_tcga_breast_mollecular_subtyping':
-    args.n_classes=6
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/tcga-subtype.csv',
-                            shuffle = False, 
-                            seed = args.seed, 
-                            print_info = True,
-                            label_dict = {'normal-like':0, 'basal':1, 'her2e':2, 'luma':3, 'lumb':4, 'clow':5},
-                            patient_strat= True,
-                            patient_voting='maj',
-                            ignore=[])
-elif args.task == 'task_4_brca_breast_mollecular_subtyping':
-    args.n_classes=5
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'data/dataset_csv/brca-subtype.csv',
-                            shuffle = False, 
-                            seed = args.seed, 
-                            print_info = True,
-                            label_dict = {'normal-like':0, 'basal':1, 'her2':2, 'luma':3, 'lumb':4},
-                            patient_strat= True,
-                            patient_voting='maj',
-                            ignore=[])
-else:
-    raise NotImplementedError
 
 num_slides_cls = np.array([len(cls_ids) for cls_ids in dataset.patient_cls_ids])
 val_num = np.round(num_slides_cls * args.val_frac).astype(int)
 test_num = np.round(num_slides_cls * args.test_frac).astype(int)
 
 if __name__ == '__main__':
+    if args.split_dir is None:
+        split_dir = '.splits/'+ str(args.task)
+    else:
+        split_dir = args.split_dir
+         
     if args.label_frac > 0:
         label_fracs = [args.label_frac]
     else:
         label_fracs = [0.1, 0.25, 0.5, 0.75, 1.0]
     
     for lf in label_fracs:
-        split_dir = '.splits/'+ str(args.task) + '_{}'.format(int(lf * 100))
+        if len(label_fracs) > 1:
+            split_dir = split_dir + '_{}'.format(int(lf * 100))
         if not os.path.isdir(split_dir):
             os.makedirs(split_dir, exist_ok=True)
             dataset.create_splits(k = args.k, val_num = val_num, test_num = test_num, label_frac=lf)

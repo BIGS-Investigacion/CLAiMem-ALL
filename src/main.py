@@ -13,7 +13,7 @@ import torch
 
 import pandas as pd
 import numpy as np
-
+import json
 
 def main(args):
     # create results directory if necessary
@@ -93,6 +93,10 @@ parser.add_argument('--exp_code', type=str, help='experiment code for saving res
 parser.add_argument('--weighted_sample', action='store_true', default=False, help='enable weighted sampling')
 parser.add_argument('--model_size', type=str, choices=['small', 'big'], default='small', help='size of model, does not affect mil')
 parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping', 'task_3_tcga_breast_mollecular_subtyping', 'task_4_brca_breast_mollecular_subtyping'])
+parser.add_argument('--csv_path', type=str, default=None, 
+                    help='manually specify the csv with the labels to use in classification (default: None)')
+parser.add_argument('--label_dict', type=str, default=None, 
+                    help='manually specify the labels associated with an index to be accessed (default: None)')
 ### CLAM specific options
 parser.add_argument('--no_inst_cluster', action='store_true', default=False,
                      help='disable instance-level clustering')
@@ -103,7 +107,13 @@ parser.add_argument('--subtyping', action='store_true', default=False,
 parser.add_argument('--bag_weight', type=float, default=0.7,
                     help='clam: weight coefficient for bag-level loss (default: 0.7)')
 parser.add_argument('--B', type=int, default=8, help='numbr of positive/negative patches to sample for clam')
+
+
 args = parser.parse_args()
+
+json_acceptable_string = args.label_dict.replace("'", "\"")
+args.labels = json.loads(json_acceptable_string)
+
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def seed_torch(seed=7):
@@ -137,64 +147,38 @@ settings = {'num_splits': args.k,
             'model_size': args.model_size,
             "use_drop_out": args.drop_out,
             'weighted_sample': args.weighted_sample,
-            'opt': args.opt}
+            'opt': args.opt, 
+            'labels':args.labels,
+            'csv_path': args.csv_path}
 
 if args.model_type in ['clam_sb', 'clam_mb']:
    settings.update({'bag_weight': args.bag_weight,
                     'inst_loss': args.inst_loss,
                     'B': args.B})
 
+
+
 print('\nLoad Dataset')
 
 #TODO: To be fixed. Config file should be used to execute tasks
 
-if args.task == 'task_1_tumor_vs_normal':
-    args.n_classes=2
-    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/tumor_vs_normal_dummy_clean.csv',
-                            data_dir= os.path.join(args.data_root_dir, 'tumor_vs_normal_resnet_features'),
+
+
+if len(args.labels) >= 2:
+    args.n_classes=len(args.labels)
+    dataset = Generic_MIL_Dataset(csv_path = args.csv_path,
+                            data_dir= args.data_root_dir,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'normal_tissue':0, 'tumor_tissue':1},
+                            label_dict = args.labels,
                             patient_strat=False,
-                            ignore=[])
-
-elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=3
-    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/tumor_subtyping_dummy_clean.csv',
-                            data_dir= os.path.join(args.data_root_dir, 'tumor_subtyping_resnet_features'),
-                            shuffle = False, 
-                            seed = args.seed, 
-                            print_info = True,
-                            label_dict = {'subtype_1':0, 'subtype_2':1, 'subtype_3':2},
-                            patient_strat= False,
-                            ignore=[])
-elif args.task == 'task_3_tcga_breast_mollecular_subtyping':
-    args.n_classes=6
-    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/tcga-subtype.csv',
-                            data_dir= args.data_root_dir,
-                            shuffle = False, 
-                            seed = args.seed, 
-                            print_info = True,
-                            label_dict = {'normal-like':0, 'basal':1, 'her2e':2, 'luma':3, 'lumb':4,'clow':5},
-                            patient_strat= False,
-                            ignore=[])
-elif args.task == 'task_4_brca_breast_mollecular_subtyping':
-    args.n_classes=5
-    dataset = Generic_MIL_Dataset(csv_path = 'data/dataset_csv/brca-subtype.csv',
-                            data_dir= args.data_root_dir,
-                            shuffle = False, 
-                            seed = args.seed, 
-                            print_info = True,
-                            label_dict = {'normal-like':0, 'basal':1, 'her2':2, 'luma':3, 'lumb':4},
-                            patient_strat= False,
-                            ignore=[])
-
-    if args.model_type in ['clam_sb', 'clam_mb']:
-        assert args.subtyping 
-        
+                            ignore=[])        
 else:
     raise NotImplementedError
+
+if args.model_type in ['clam_sb', 'clam_mb']:
+    assert args.subtyping 
     
 if not os.path.isdir(args.results_dir):
     os.mkdir(args.results_dir)
@@ -206,7 +190,7 @@ if not os.path.isdir(args.results_dir):
 if args.split_dir is None:
     args.split_dir = os.path.join('.splits', args.task+'_{}'.format(int(args.label_frac*100)))
 else:
-    args.split_dir = os.path.join('.splits', args.split_dir)
+    args.split_dir = args.split_dir
 
 print('split_dir: ', args.split_dir)
 print(args.split_dir)
