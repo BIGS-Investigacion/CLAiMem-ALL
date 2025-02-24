@@ -27,6 +27,7 @@ parser.add_argument('--csv_path', type=str, default=None,
                     help='manually specify the csv with the labels to use in classification (default: None)')
 parser.add_argument('--label_dict', type=str, default=None, 
                     help='manually specify the labels associated with an index to be accessed (default: None)')
+parser.add_argument('--force_balance', action='store_true', default=False, help='forces balance in the splits')
 
 args = parser.parse_args()
 
@@ -43,7 +44,8 @@ if len(labels)==2:
                             print_info = True,
                             label_dict = labels,
                             patient_strat=True,
-                            ignore=[])
+                            ignore=[],
+                            balance_data=args.force_balance)
 
 else: 
     #args.n_classes=3
@@ -56,7 +58,8 @@ else:
                             label_dict = labels,
                             patient_strat= True,
                             patient_voting='maj',
-                            ignore=[])
+                            ignore=[], 
+                            balance_data=args.force_balance)
 
 num_slides_cls = np.array([len(cls_ids) for cls_ids in dataset.patient_cls_ids])
 val_num = np.round(num_slides_cls * args.val_frac).astype(int)

@@ -40,6 +40,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		patient_strat=False,
 		label_col = None,
 		patient_voting = 'max',
+		balance_data = False,
 		):
 		"""
 		Args:
@@ -60,6 +61,8 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		if not label_col:
 			label_col = 'label'
 		self.label_col = label_col
+		
+		self.balance_data = balance_data
 
 		slide_data = pd.read_csv(csv_path)
 		slide_data = self.filter_df(slide_data, filter_dict)
@@ -72,11 +75,24 @@ class Generic_WSI_Classification_Dataset(Dataset):
 
 		self.slide_data = slide_data
 
+		if self.balance_data:
+			self.balance_classes()
+
 		self.patient_data_prep(patient_voting)
 		self.cls_ids_prep()
 
 		if print_info:
 			self.summarize()
+	
+	def balance_classes(self):
+        # Balancear las clases mediante submuestreo de las clases mayoritarias
+		min_count = self.slide_data['label'].value_counts().min()
+		balanced_data = []
+		for label in range(self.num_classes):
+			class_data = self.slide_data[self.slide_data['label'] == label]
+			balanced_class_data = class_data.sample(min_count, replace=False, random_state=self.seed)
+			balanced_data.append(balanced_class_data)
+		self.slide_data = pd.concat(balanced_data).reset_index(drop=True)
 
 	def cls_ids_prep(self):
 		# store ids corresponding each class at the patient or case level
