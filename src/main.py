@@ -181,7 +181,7 @@ if args.model_type in ['clam_sb', 'clam_mb']:
     assert args.subtyping 
     
 if not os.path.isdir(args.results_dir):
-    os.mkdir(args.results_dir)
+    os.makedirs(args.results_dir)
 
 args.results_dir = os.path.join(args.results_dir, str(args.exp_code) + '_s{}'.format(args.seed))
 if not os.path.isdir(args.results_dir):
