@@ -85,12 +85,12 @@ class Generic_WSI_Classification_Dataset(Dataset):
 			self.summarize()
 	
 	def balance_classes(self):
-        # Balancear las clases mediante submuestreo de las clases mayoritarias
-		min_count = self.slide_data['label'].value_counts().min()
+        # Balancear las clases mediante oversampling de las clases mayoritarias
+		m_count = self.slide_data['label'].value_counts().max()
 		balanced_data = []
 		for label in range(self.num_classes):
 			class_data = self.slide_data[self.slide_data['label'] == label]
-			balanced_class_data = class_data.sample(min_count, replace=False, random_state=self.seed)
+			balanced_class_data = class_data.sample(m_count, replace=True, random_state=self.seed)
 			balanced_data.append(balanced_class_data)
 		self.slide_data = pd.concat(balanced_data).reset_index(drop=True)
 
