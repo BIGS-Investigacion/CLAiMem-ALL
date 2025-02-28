@@ -383,5 +383,18 @@ class Generic_Split(Generic_MIL_Dataset):
 	def __len__(self):
 		return len(self.slide_data)
 		
+class Fused_Generic_Split(Generic_Split):
+	def __init__(self, splits, data_dir=None, num_classes=2):
+		super(Fused_Generic_Split, self).__init__(splits[0].slide_data, data_dir, num_classes)
+		self.slide_data = self.merge_splits(self.slide_data, splits[1:])
+		self.data_dir = data_dir
+		self.num_classes = num_classes
+		self.slide_cls_ids = [[] for i in range(self.num_classes)]
+		for i in range(self.num_classes):
+			self.slide_cls_ids[i] = np.where(self.slide_data['label'] == i)[0]
 
-
+	def merge_splits(self, slide_data, datasets):
+		merged_data = [slide_data]
+		for dataset in datasets:
+			merged_data.append(dataset.slide_data)
+		return pd.concat(merged_data, ignore_index=True)
