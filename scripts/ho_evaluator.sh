@@ -1,11 +1,10 @@
 DATABASE_TRAIN=cptac-brca
-CSV_FILE_TRAIN=data/dataset_csv/brca-subtype_pam50.csv
 DATABASE_TEST=tcga-brca
 CSV_FILE_TEST=data/dataset_csv/tcga-subtype_pam50.csv
 LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
 RESULTS_DIR=.results/$DATABASE_TRAIN/$DATABASE_TEST
-CLAM_MODEL_TYPE=clam_mb
-MODEL_SIZE=big
+CLAM_MODEL_TYPE=clam_sb
+MODEL_SIZE=small
 CUDA_DEV=0
 K=1
 
