@@ -27,13 +27,12 @@ parser.add_argument('--csv_path', type=str, default=None,
                     help='manually specify the csv with the labels to use in classification (default: None)')
 parser.add_argument('--label_dict', type=str, default=None, 
                     help='manually specify the labels associated with an index to be accessed (default: None)')
-parser.add_argument('--force_balance', action='store_true', default=False, help='forces balance in the splits')
+parser.add_argument('--patient_strat', action='store_true', default=False, help='forces isolated patients in the splits')
 
 args = parser.parse_args()
 
 json_acceptable_string = args.label_dict.replace("'", "\"")
 labels = json.loads(json_acceptable_string)
-
 if len(labels)==2:
     #args.n_classes=2
     #'data/dataset_csv/tumor_vs_normal_dummy_clean.csv'
@@ -43,7 +42,7 @@ if len(labels)==2:
                             seed = args.seed, 
                             print_info = True,
                             label_dict = labels,
-                            patient_strat=True,
+                            patient_strat=args.patient_strat,
                             ignore=[],
                             balance_data=args.force_balance)
 
@@ -56,7 +55,7 @@ else:
                             seed = args.seed, 
                             print_info = True,
                             label_dict = labels,
-                            patient_strat= True,
+                            patient_strat= args.patient_strat,
                             patient_voting='maj',
                             ignore=[], 
                             balance_data=args.force_balance)

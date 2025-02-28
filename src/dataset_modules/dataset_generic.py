@@ -75,24 +75,12 @@ class Generic_WSI_Classification_Dataset(Dataset):
 
 		self.slide_data = slide_data
 
-		if self.balance_data:
-			self.balance_classes()
-
+		
 		self.patient_data_prep(patient_voting)
 		self.cls_ids_prep()
 
 		if print_info:
 			self.summarize()
-	
-	def balance_classes(self):
-        # Balancear las clases mediante oversampling de las clases mayoritarias
-		m_count = self.slide_data['label'].value_counts().max()
-		balanced_data = []
-		for label in range(self.num_classes):
-			class_data = self.slide_data[self.slide_data['label'] == label]
-			balanced_class_data = class_data.sample(m_count, replace=True, random_state=self.seed)
-			balanced_data.append(balanced_class_data)
-		self.slide_data = pd.concat(balanced_data).reset_index(drop=True)
 
 	def cls_ids_prep(self):
 		# store ids corresponding each class at the patient or case level
@@ -383,7 +371,7 @@ class Generic_Split(Generic_MIL_Dataset):
 	def __len__(self):
 		return len(self.slide_data)
 		
-class Fused_Generic_Split(Generic_Split):
+'''class Fused_Generic_Split(Generic_Split):
 	def __init__(self, splits, data_dir=None, num_classes=2):
 		super(Fused_Generic_Split, self).__init__(splits[0].slide_data, data_dir, num_classes)
 		self.slide_data = self.merge_splits(self.slide_data, splits[1:])
@@ -397,4 +385,4 @@ class Fused_Generic_Split(Generic_Split):
 		merged_data = [slide_data]
 		for dataset in datasets:
 			merged_data.append(dataset.slide_data)
-		return pd.concat(merged_data, ignore_index=True)
+		return pd.concat(merged_data, ignore_index=True)'''

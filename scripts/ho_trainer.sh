@@ -13,19 +13,18 @@ CSV_FILE_TRAIN=data/dataset_csv/brca-subtype_pam50.csv
 LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
 LABEL_FRAC=1
 VAL_FRAC=0.1
-TEST_FRAC=0.3
+TEST_FRAC=0.1
 SPLIT_DIR_TRAIN=.splits/$DATABASE_TRAIN/ho_$K
-python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TRAIN --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TRAIN --label_dict $LABEL_DICT --force_balance
+python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TRAIN --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TRAIN --label_dict $LABEL_DICT ##--patient_strat
 
 DATABASE_TEST=tcga-brca
 CSV_FILE_TEST=data/dataset_csv/tcga-subtype_pam50.csv
 LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
 LABEL_FRAC=1
 VAL_FRAC=0.1
-TEST_FRAC=0.3
-
+TEST_FRAC=0.1
 SPLIT_DIR_TEST=.splits/$DATABASE_TEST/ho_$K
-python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TEST --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TEST --label_dict $LABEL_DICT --force_balance
+python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TEST --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TEST --label_dict $LABEL_DICT #--patient_strat
 
 EMBED_DIM=1024
 MODEL_NAME=cnn
