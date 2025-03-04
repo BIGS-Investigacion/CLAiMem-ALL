@@ -230,21 +230,21 @@ class Generic_WSI_Classification_Dataset(Dataset):
 				train_split = Generic_Split(train_data, data_dir=self.data_dir, num_classes=self.num_classes)
 
 			else:
-				train_split = None
+				train_split = Generic_Split(train_data, data_dir=self.data_dir, num_classes=self.num_classes)
 			
 			if len(self.val_ids) > 0:
 				val_data = self.slide_data.loc[self.val_ids].reset_index(drop=True)
 				val_split = Generic_Split(val_data, data_dir=self.data_dir, num_classes=self.num_classes)
 
 			else:
-				val_split = None
+				val_split = Generic_Split(train_data, data_dir=self.data_dir, num_classes=self.num_classes)
 			
 			if len(self.test_ids) > 0:
 				test_data = self.slide_data.loc[self.test_ids].reset_index(drop=True)
 				test_split = Generic_Split(test_data, data_dir=self.data_dir, num_classes=self.num_classes)
 			
 			else:
-				test_split = None
+				test_split = Generic_Split(train_data, data_dir=self.data_dir, num_classes=self.num_classes)
 			
 		
 		else:

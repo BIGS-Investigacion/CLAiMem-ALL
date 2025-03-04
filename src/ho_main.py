@@ -6,7 +6,7 @@ import os
 from utils.file_utils import save_pkl
 from utils.utils import *
 from utils.core_utils import train
-from dataset_modules.dataset_generic import Fused_Generic_Split, Generic_MIL_Dataset, Generic_Split
+from dataset_modules.dataset_generic import Generic_MIL_Dataset
 
 # pytorch imports
 import torch
@@ -29,18 +29,11 @@ def main(args, dataset_1: Generic_MIL_Dataset, dataset_2: Generic_MIL_Dataset):
     all_val_acc = []
     
     seed_torch(args.seed)
-    '''train_dataset_1, val_dataset_1, test_dataset_1 = dataset_1.return_splits(from_id=False, 
+    train_dataset_1, val_dataset_1, _ = dataset_1.return_splits(from_id=False, 
             csv_path='{}/splits_{}.csv'.format(args.split_dir_train, 0))
     
-    train_dataset = Fused_Generic_Split([train_dataset_1, val_dataset_1], args.data_root_dir_train, args.n_classes)
-    val_dataset = test_dataset_1
-
-    train_dataset_2, val_dataset_2, test_dataset_2 = dataset_2.return_splits(from_id=False, 
-            csv_path='{}/splits_{}.csv'.format(args.split_dir_test, 0))
-    test_dataset = Fused_Generic_Split([train_dataset_2, val_dataset_2, test_dataset_2], args.data_root_dir_test, args.n_classes)
-    
-    datasets = (train_dataset, val_dataset, test_dataset)'''
-    datasets = (dataset_1, dataset_1, dataset_2)
+    datasets = (train_dataset_1, val_dataset_1, dataset_2)
+    #datasets = (dataset_1, dataset_1, dataset_2)
     results, test_auc, val_auc, test_acc, val_acc  = train(datasets, 0, args)
     all_test_auc.append(test_auc)
     all_val_auc.append(val_auc)

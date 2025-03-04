@@ -1,3 +1,44 @@
+
+if [ "$1" != "cptac" ] && [ "$1" != "tcga" ]; then
+    echo "Invalid database name. Use 'cptac' or 'tgca'."
+    exit 1
+else
+    DATABASE_TRAIN=$1
+    if [ "$1" != "cptac" ]; then
+        DATABASE_TEST="cptac"
+    else
+        DATABASE_TEST="tcga"
+    fi
+fi
+
+if [ "$2" == "pam50" ]; then
+    CSV_FILE_TRAIN=data/dataset_csv/$DATABASE_TRAIN-subtype_pam50.csv
+    CSV_FILE_TEST=data/dataset_csv/$DATABASE_TEST-subtype_pam50.csv
+    LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
+elif [ "$2" == "erbb2" ]; then
+    CSV_FILE_TRAIN=data/dataset_csv/$DATABASE_TRAIN-erbb2.csv
+    CSV_FILE_TEST=data/dataset_csv/$DATABASE_TEST-erbb2.csv
+    LABEL_DICT="{'negative':0,'positive':1}"
+elif [ "$2" == "pr" ]; then
+    CSV_FILE_TRAIN=data/dataset_csv/$DATABASE_TRAIN-pr.csv
+    CSV_FILE_TEST=data/dataset_csv/$DATABASE_TEST-pr.csv
+    LABEL_DICT="{'negative':0,'positive':1}"
+elif [ "$2" == "er" ]; then
+    CSV_FILE_TRAIN=data/dataset_csv/$DATABASE_TRAIN-er.csv
+    CSV_FILE_TEST=data/dataset_csv/$DATABASE_TEST-er.csv
+    LABEL_DICT="{'negative':0,'positive':1}"
+else
+    echo "Invalid parameter. Use 'pam50', 'er', 'pr' or 'erbb2'."
+    exit 1
+fi
+
+if [ -z "$3" ]; then
+    echo "Please provide the directory where the features are located regardless ."
+    exit 1
+else
+    F_DIRECTORY=$3
+fi
+
 SEED=42
 K=1
 DROP_OUT=0.25
@@ -5,32 +46,38 @@ LR=2e-4
 BAG_LOSS=ce
 INST_LOSS=svm
 CLAM_MODEL_TYPE=clam_sb
+B=32
 MODEL_SIZE=big
 CUDA_DEV=0
 
-DATABASE_TRAIN=cptac-brca
-CSV_FILE_TRAIN=data/dataset_csv/brca-subtype_pam50.csv
-LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
 LABEL_FRAC=1
-VAL_FRAC=0.1
-TEST_FRAC=0.1
-SPLIT_DIR_TRAIN=.splits/$DATABASE_TRAIN/ho_$K
+VAL_FRAC=0.3
+TEST_FRAC=0.0
+CURRENT=$(date +"%s")
+SPLIT_DIR_TRAIN=.splits/$DATABASE_TRAIN/ho-train-$CURRENT
 python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TRAIN --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TRAIN --label_dict $LABEL_DICT ##--patient_strat
 
-DATABASE_TEST=tcga-brca
-CSV_FILE_TEST=data/dataset_csv/tcga-subtype_pam50.csv
-LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
 LABEL_FRAC=1
-VAL_FRAC=0.1
-TEST_FRAC=0.1
-SPLIT_DIR_TEST=.splits/$DATABASE_TEST/ho_$K
+VAL_FRAC=0.0
+TEST_FRAC=0.0
+CURRENT=$(date +"%s")
+SPLIT_DIR_TEST=.splits/$DATABASE_TEST/ho-test-$CURRENT
 python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TEST --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TEST --label_dict $LABEL_DICT #--patient_strat
 
 EMBED_DIM=1024
 MODEL_NAME=cnn
 EXP_CODE=$MODEL_NAME
-FEATURES_DIRECTORY_TRAIN=.features/$DATABASE_TRAIN/features_$MODEL_NAME
-FEATURES_DIRECTORY_TEST=.features/$DATABASE_TEST/features_$MODEL_NAME
-RESULTS_DIR=.results/$DATABASE_TRAIN/$DATABASE_TEST/$MODEL_NAME
+FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
+FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
+RESULTS_DIR=.results/$DATABASE/$2/ho-$DATABASE_TRAIN-$DATABASE_TEST-$CURRENT/$CLAM_MODEL_TYPE/$MODEL_NAME
 
-CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT  
+#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT  
+
+EMBED_DIM=512
+MODEL_NAME=conch
+EXP_CODE=$MODEL_NAME
+FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
+FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
+RESULTS_DIR=.results/$DATABASE/$2/ho-$DATABASE_TRAIN-$DATABASE_TEST-$CURRENT/$CLAM_MODEL_TYPE/$MODEL_NAME
+
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT  
