@@ -43,8 +43,7 @@ if len(labels)==2:
                             print_info = True,
                             label_dict = labels,
                             patient_strat=args.patient_strat,
-                            ignore=[],
-                            balance_data=args.force_balance)
+                            ignore=[])
 
 else: 
     #args.n_classes=3
@@ -57,8 +56,7 @@ else:
                             label_dict = labels,
                             patient_strat= args.patient_strat,
                             patient_voting='maj',
-                            ignore=[], 
-                            balance_data=args.force_balance)
+                            ignore=[])
 
 num_slides_cls = np.array([len(cls_ids) for cls_ids in dataset.patient_cls_ids])
 val_num = np.round(num_slides_cls * args.val_frac).astype(int)
