@@ -39,8 +39,17 @@ else
     PATIENT_STRAT=""
 fi
 
+if [ -z "$5" ]; then
+    echo "Please provide the fifth parameter as a valid number of folds in [2,]."
+    exit 1
+elif [ "$5" -l 2 ]; then
+    echo "The number of folds must be greater than 1."
+    exit 1
+else
+    K=$5
+fi
+
 SEED=42
-K=2
 DROP_OUT=0.5
 LR=2e-4
 BAG_LOSS=ce

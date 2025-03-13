@@ -47,10 +47,9 @@ MODEL_SIZE=big
 DROP_OUT=0.5
 CUDA_DEV=0
 
-for dir in .results/$DATABASE/$2/$CLAM_MODEL_TYPE/$VALIDATION*; do
+for dir in .results/$DATABASE/$2/$VALIDATION*/$CLAM_MODEL_TYPE; do
     if [ -d "$dir" ]; then
         RESULTS_DIR=$dir
-        
         for subdir in $RESULTS_DIR/*; do
             if [ -d "$subdir" ]; then
                 MODEL_NAME=$(basename "$subdir")
@@ -62,7 +61,7 @@ for dir in .results/$DATABASE/$2/$CLAM_MODEL_TYPE/$VALIDATION*; do
                 fi
                 FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
                 EXP_CODE=$MODEL_NAME
-                EXP_CODE_SAVE=$(echo $dir | tr '/' '-')\_summary
+                EXP_CODE_SAVE=$(echo $dir | tr '/' '-')-$MODEL_NAME-summary
                 CUDA_VISIBLE_DEVICES=$CUDA_DEV  python src/eval.py  --drop_out $DROP_OUT --model_size $MODEL_SIZE --k $K --models_exp_code $EXP_CODE --save_exp_code $EXP_CODE_SAVE --csv_path $CSV_FILE --label_dict $LABEL_DICT --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM
                 #CUDA_VISIBLE_DEVICES=0 src/python create_heatmaps.py --config config_template.yaml
             fi
