@@ -42,7 +42,7 @@ K=10
 if [ -z "$5" ]; then
     echo "Please provide the fifth parameter as a valid number of folds in [2,]."
     exit 1
-elif [ "$5" -l 2 ]; then
+elif [ "$5" -lt 2 ]; then
     echo "The number of folds must be greater than 1."
     exit 1
 else
