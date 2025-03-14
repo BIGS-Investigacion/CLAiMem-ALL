@@ -38,7 +38,7 @@ elif [ "$4" == "YES" ]; then
 else
     PATIENT_STRAT=""
 fi
-
+K=10
 if [ -z "$5" ]; then
     echo "Please provide the fifth parameter as a valid number of folds in [2,]."
     exit 1
