@@ -82,7 +82,7 @@ RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict $LABEL_DICT  
 
-EMBED_DIM=1024
+EMBED_DIM=768
 MODEL_NAME=ctranspath
 EXP_CODE=$MODEL_NAME
 FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
@@ -90,7 +90,7 @@ RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict $LABEL_DICT  
 
-EMBED_DIM=1024
+EMBED_DIM=768
 MODEL_NAME=hibou_b
 EXP_CODE=$MODEL_NAME
 FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
@@ -106,7 +106,7 @@ RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict $LABEL_DICT  
 
-EMBED_DIM=1024
+EMBED_DIM=1536
 MODEL_NAME=hoptimus0
 EXP_CODE=$MODEL_NAME
 FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
@@ -114,7 +114,7 @@ RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict $LABEL_DICT  
 
-EMBED_DIM=1024
+EMBED_DIM=2048
 MODEL_NAME=musk
 EXP_CODE=$MODEL_NAME
 FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
@@ -130,7 +130,7 @@ RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict $LABEL_DICT  
 
-EMBED_DIM=1024
+EMBED_DIM=1536
 MODEL_NAME=provgigapath
 EXP_CODE=$MODEL_NAME
 FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
@@ -138,7 +138,7 @@ RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict $LABEL_DICT  
 
-EMBED_DIM=1024
+EMBED_DIM=2048
 MODEL_NAME=retccl
 EXP_CODE=$MODEL_NAME
 FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
@@ -163,7 +163,7 @@ RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict $LABEL_DICT  
 
-EMBED_DIM=1024
+EMBED_DIM=2560
 MODEL_NAME=virchow
 EXP_CODE=$MODEL_NAME
 FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
