@@ -300,6 +300,7 @@ if __name__ == '__main__':
 
         # load features 
         features = torch.load(features_path)
+        features = features.view(model.size(0), -1)
         process_stack.loc[i, 'bag_size'] = len(features)
         
         wsi_object.saveSegmentation(mask_file)
