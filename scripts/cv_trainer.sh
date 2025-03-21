@@ -7,7 +7,7 @@ else
 fi
 
 if [ "$2" == "pam50" ]; then
-    CSV_FILE=data/dataset_csv/$DATABASE-subtype_pam50.csv
+    CSV_FILE=data/dataset_csv/$DATABASE-subtype_pam50_main.csv
     LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
     SUBTYPING="--subtyping"
 elif [ "$2" == "erbb2" ]; then
