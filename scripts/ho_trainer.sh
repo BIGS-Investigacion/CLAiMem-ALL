@@ -16,10 +16,10 @@ if [ "$2" == "pam50" ]; then
     LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
 elif [ "$2" == "ihc" ]; then
     CSV_FILE=data/dataset_csv/$DATABASE-subtype_ihc.csv
-    LABEL_DICT="{'Triple-negative':0,'Luminal A':1,'Her2-not-luminal':2,'Luminal B(HER2-)':3,'Luminal B(HER2+)':4}"
+    LABEL_DICT="{'Triple-negative':0,'Luminal-A':1,'Her2-not-luminal':2,'Luminal-B(HER2-)':3,'Luminal-B(HER2+)':4}"
 elif [ "$2" == "ihc_simple" ]; then
     CSV_FILE=data/dataset_csv/$DATABASE-subtype_ihc_simple.csv
-    LABEL_DICT="{'Triple-negative':0,'Luminal A':1,'Luminal B':2,'HER2':3}"
+    LABEL_DICT="{'Triple-negative':0,'Luminal-A':1,'Luminal-B':2,'HER2':3}"
 elif [ "$2" == "erbb2" ]; then
     CSV_FILE_TRAIN=data/dataset_csv/$DATABASE_TRAIN-erbb2.csv
     CSV_FILE_TEST=data/dataset_csv/$DATABASE_TEST-erbb2.csv
