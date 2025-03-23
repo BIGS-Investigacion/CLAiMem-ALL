@@ -14,15 +14,12 @@ fi
 if [ "$2" == "pam50" ]; then
     CSV_FILE=data/dataset_csv/$DATABASE-subtype_pam50.csv
     LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
-    SUBTYPING="--subtyping"
 elif [ "$2" == "ihc" ]; then
     CSV_FILE=data/dataset_csv/$DATABASE-subtype_ihc.csv
     LABEL_DICT="{'Triple-negative':0,'Luminal A':1,'Her2-not-luminal':2,'Luminal B(HER2-)':3,'Luminal B(HER2+)':4}"
-    SUBTYPING="--subtyping"
 elif [ "$2" == "ihc_simple" ]; then
     CSV_FILE=data/dataset_csv/$DATABASE-subtype_ihc_simple.csv
     LABEL_DICT="{'Triple-negative':0,'Luminal A':1,'Luminal B':2,'HER2':3}"
-    SUBTYPING="--subtyping"
 elif [ "$2" == "erbb2" ]; then
     CSV_FILE_TRAIN=data/dataset_csv/$DATABASE_TRAIN-erbb2.csv
     CSV_FILE_TEST=data/dataset_csv/$DATABASE_TEST-erbb2.csv
@@ -88,7 +85,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT  
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT  
 
 EMBED_DIM=512
 MODEL_NAME=conch
@@ -107,7 +104,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=768
 MODEL_NAME=hibou_b
@@ -116,7 +113,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=1024
 MODEL_NAME=hibou_l
@@ -125,7 +122,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=1536
 MODEL_NAME=hoptimus0
@@ -134,7 +131,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=2048
 MODEL_NAME=musk
@@ -143,7 +140,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=1024
 MODEL_NAME=phikon
@@ -152,7 +149,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=1536
 MODEL_NAME=provgigapath
@@ -161,7 +158,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=2048
 MODEL_NAME=retccl
@@ -170,7 +167,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=1024
 MODEL_NAME=uni
@@ -179,7 +176,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=1536
 MODEL_NAME=uni_2
@@ -188,7 +185,7 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 EMBED_DIM=2560
 MODEL_NAME=virchow
@@ -197,6 +194,6 @@ FEATURES_DIRECTORY_TRAIN=$F_DIRECTORY/$DATABASE_TRAIN/features_$MODEL_NAME
 FEATURES_DIRECTORY_TEST=$F_DIRECTORY/$DATABASE_TEST/features_$MODEL_NAME
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
-#CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K  --weighted_sample --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
 
