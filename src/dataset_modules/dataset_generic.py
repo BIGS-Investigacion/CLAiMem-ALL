@@ -371,19 +371,21 @@ class Generic_Split(Generic_MIL_Dataset):
 
 	def __len__(self):
 		return len(self.slide_data)
-		
-'''class Fused_Generic_Split(Generic_Split):
-	def __init__(self, splits, data_dir=None, num_classes=2):
-		super(Fused_Generic_Split, self).__init__(splits[0].slide_data, data_dir, num_classes)
-		self.slide_data = self.merge_splits(self.slide_data, splits[1:])
-		self.data_dir = data_dir
-		self.num_classes = num_classes
-		self.slide_cls_ids = [[] for i in range(self.num_classes)]
-		for i in range(self.num_classes):
-			self.slide_cls_ids[i] = np.where(self.slide_data['label'] == i)[0]
-
-	def merge_splits(self, slide_data, datasets):
-		merged_data = [slide_data]
-		for dataset in datasets:
-			merged_data.append(dataset.slide_data)
-		return pd.concat(merged_data, ignore_index=True)'''
+	
+def balance(dataset:Generic_Split)->Generic_Split:
+	result = Generic_Split(dataset.slide_data, data_dir=dataset.data_dir, num_classes=dataset.num_classes)
+	# Example list of numpy arrays
+	arrays = result.slide_cls_ids
+	# Find the maximum size among the arrays
+	max_size = max(arr.shape[0] for arr in arrays)
+	# Pad arrays to have the same size
+	balanced_arrays = []
+	for arr in arrays:
+		padding = max_size - arr.shape[0]
+		if padding > 0:
+			padded_array = np.pad(arr, (0, padding), mode='wrap')  # Adjusted for 1D array
+		else:
+			padded_array = arr
+		balanced_arrays.append(padded_array)
+	result.slide_cls_ids = balanced_arrays
+	return result
