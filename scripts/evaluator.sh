@@ -10,6 +10,12 @@ fi
 if [ "$2" == "pam50" ]; then
     CSV_FILE=data/dataset_csv/$DATABASE-subtype_pam50.csv
     LABEL_DICT="{'basal':0,'her2':1,'luma':2,'lumb':3,'normal':4}"
+elif [ "$2" == "ihc" ]; then
+    CSV_FILE=data/dataset_csv/$DATABASE-subtype_ihc.csv
+    LABEL_DICT="{'Triple-negative':0,'Luminal-A':1,'Her2-not-luminal':2,'Luminal-B(HER2-)':3,'Luminal-B(HER2+)':4}"
+elif [ "$2" == "ihc_simple" ]; then
+    CSV_FILE=data/dataset_csv/$DATABASE-subtype_ihc_simple.csv
+    LABEL_DICT="{'Triple-negative':0,'Luminal-A':1,'Luminal-B':2,'HER2':3}"
 elif [ "$2" == "erbb2" ]; then
     CSV_FILE=data/dataset_csv/$DATABASE-erbb2.csv
     LABEL_DICT="{'negative':0,'positive':1}"
@@ -20,7 +26,7 @@ elif [ "$2" == "er" ]; then
     CSV_FILE=data/dataset_csv/$DATABASE-er.csv
     LABEL_DICT="{'negative':0,'positive':1}"
 else
-    echo "Invalid parameter. Use 'pam50', 'er', 'pr' or 'erbb2'."
+    echo "Invalid parameter. Use 'ihc', 'ihc_simple', 'pam50', 'er', 'pr' or 'erbb2'."
     exit 1
 fi
 
@@ -44,18 +50,27 @@ fi
 
 CLAM_MODEL_TYPE=clam_sb
 MODEL_SIZE=big
-DROP_OUT=0.5
+DROP_OUT=0.25
 CUDA_DEV=0
 
-for dir in .results/$DATABASE/$2/$VALIDATION*/$CLAM_MODEL_TYPE; do
+for dir in .results/$DATABASE/$2/$CLAM_MODEL_TYPE/$VALIDATION*; do
     if [ -d "$dir" ]; then
         RESULTS_DIR=$dir
-        for subdir in $RESULTS_DIR/*; do
+        for subdir in $RESULTS_DIR/*/; do
+            
             if [ -d "$subdir" ]; then
                 MODEL_NAME=$(basename "$subdir")
                 # Add your processing commands here
                 if [[ "$MODEL_NAME" == "conch" ]]; then
                     EMBED_DIM=512
+                elif [[ "$MODEL_NAME" == "ctranspath" ]] || [[ "$MODEL_NAME" == "hibou_b" ]]; then
+                    EMBED_DIM=768
+                elif [[ "$MODEL_NAME" == "hoptimus0" ]] || [[ "$MODEL_NAME" == "provgigapath" ]] || [[ "$MODEL_NAME" == "uni_2" ]]; then
+                    EMBED_DIM=1536
+                elif [[ "$MODEL_NAME" == "musk" ]] || [[ "$MODEL_NAME" == "retccl" ]]; then
+                    EMBED_DIM=2048
+                elif [[ "$MODEL_NAME" == "virchow" ]]; then
+                    EMBED_DIM=2560
                 else
                     EMBED_DIM=1024
                 fi
