@@ -26,7 +26,7 @@ elif [ "$2" == "er" ]; then
     CSV_FILE=data/dataset_csv/$DATABASE-er.csv
     LABEL_DICT="{'negative':0,'positive':1}"
 else
-    echo "Invalid parameter. Use 'pam50', 'er', 'pr' or 'erbb2'."
+    echo "Invalid parameter. Use 'ihc', 'ihc_simple', 'pam50', 'er', 'pr' or 'erbb2'."
     exit 1
 fi
 
@@ -57,15 +57,15 @@ else
 fi
 
 SEED=42
-DROP_OUT=0.5
+DROP_OUT=0.25
 LR=2e-4
 BAG_LOSS=ce
 INST_LOSS=svm
 CLAM_MODEL_TYPE=clam_sb
-B=32
-MODEL_SIZE=big
+B=8
+MODEL_SIZE=small
 LABEL_FRAC=1
-TEST_FRAC=0.1
+TEST_FRAC=0.2
 VAL_FRAC=0.2
 CURRENT=$(date +"%s")
 SPLIT_DIR=.splits/$DATABASE/cv-$K-$CURRENT
