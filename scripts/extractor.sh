@@ -15,10 +15,7 @@ if [ "$4" -eq 0 ]; then
 python src/create_patches_fp.py --source $DATA_DIRECTORY --save_dir $PATCHES_DIRECTORY --patch_size $PATCH_SIZE --preset $PRESET_CSV --seg --patch --stitch
 python src/bigs_auxiliar/downloader.py
 
-fi
-
-
-if [ "$4" -eq 1 ]; then
+elif [ "$4" -eq 1 ]; then
 
     BATCH_SIZE=2048
     FEATURES_DIRECTORY=$FEATURES_BASE/$DATABASE/features_cnn
