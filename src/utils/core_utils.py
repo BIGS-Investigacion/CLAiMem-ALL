@@ -8,6 +8,7 @@ from models.model_clam import CLAM_MB, CLAM_SB
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.metrics import auc as calc_auc
+from cbloss.loss import FocalLoss
 
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -120,7 +121,10 @@ def train(datasets, cur, args):
         if device.type == 'cuda':
             loss_fn = loss_fn.cuda()
     else:
-        loss_fn = nn.CrossEntropyLoss()
+        if args.weighted_sample:
+            loss_fn = FocalLoss(num_classes=args.n_classes, gamma=2.0, alpha=0.25)
+        else:
+            loss_fn = nn.CrossEntropyLoss()
     print('Done!')
     
     print('\nInit Model...', end=' ')
@@ -144,7 +148,10 @@ def train(datasets, cur, args):
             if device.type == 'cuda':
                 instance_loss_fn = instance_loss_fn.cuda()
         else:
-            instance_loss_fn = nn.CrossEntropyLoss()
+            if args.weighted_sample:
+                instance_loss_fn = FocalLoss(num_classes=args.n_classes, gamma=2.0, alpha=0.25)
+            else:
+                instance_loss_fn = nn.CrossEntropyLoss()
         
         if args.model_type =='clam_sb':
             model = CLAM_SB(**model_dict, instance_loss_fn=instance_loss_fn)

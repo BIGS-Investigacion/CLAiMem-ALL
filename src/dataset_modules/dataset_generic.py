@@ -371,21 +371,3 @@ class Generic_Split(Generic_MIL_Dataset):
 
 	def __len__(self):
 		return len(self.slide_data)
-	
-def balance(dataset:Generic_Split)->Generic_Split:
-	result = Generic_Split(dataset.slide_data, data_dir=dataset.data_dir, num_classes=dataset.num_classes)
-	# Example list of numpy arrays
-	arrays = result.slide_cls_ids
-	# Find the maximum size among the arrays
-	max_size = max(arr.shape[0] for arr in arrays)
-	# Pad arrays to have the same size
-	balanced_arrays = []
-	for arr in arrays:
-		padding = max_size - arr.shape[0]
-		if padding > 0:
-			padded_array = np.pad(arr, (0, padding), mode='wrap')  # Adjusted for 1D array
-		else:
-			padded_array = arr
-		balanced_arrays.append(padded_array)
-	result.slide_cls_ids = balanced_arrays
-	return result
