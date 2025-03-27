@@ -49,7 +49,7 @@ class Accuracy_Logger(object):
 
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
-    def __init__(self, patience=20, stop_epoch=50, verbose=False):
+    def __init__(self, patience=5, stop_epoch=50, verbose=False):
         """
         Args:
             patience (int): How long to wait after last time validation loss improved.
@@ -122,7 +122,7 @@ def train(datasets, cur, args):
             loss_fn = loss_fn.cuda()
     else:
         if args.weighted_sample:
-            loss_fn = FocalLoss(num_classes=args.n_classes, gamma=2.0, alpha=0.25)
+            loss_fn = FocalLoss(num_classes=args.n_classes)
         else:
             loss_fn = nn.CrossEntropyLoss()
     print('Done!')
@@ -149,7 +149,7 @@ def train(datasets, cur, args):
                 instance_loss_fn = instance_loss_fn.cuda()
         else:
             if args.weighted_sample:
-                instance_loss_fn = FocalLoss(num_classes=args.n_classes, gamma=2.0, alpha=0.25)
+                instance_loss_fn = FocalLoss(num_classes=args.n_classes)
             else:
                 instance_loss_fn = nn.CrossEntropyLoss()
         
