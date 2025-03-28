@@ -1,19 +1,20 @@
 DATABASE=$1
 DATA_DIRECTORY=$2
 CSV_FILE_NAME=$3
-PATCHES_DIRECTORY=.patches_20x/$DATABASE
+PATCHES_DIRECTORY=.patches_20x_tumor/$DATABASE
 PATCH_SIZE=512 # TO BE FIXED: Should be 128 if 10x, 256 if 20x, 512 if 40x...
-FEATURES_BASE=.features_20x
+FEATURES_BASE=.features_20x_tumor
 
 PRESET_CSV=tcga.csv
 SLIDE_EXT=.svs
 CUDA_DEV=0
 
-
 if [ "$4" -eq 0 ]; then
 
 python src/create_patches_fp.py --source $DATA_DIRECTORY --save_dir $PATCHES_DIRECTORY --patch_size $PATCH_SIZE --preset $PRESET_CSV --seg --patch --stitch
 python src/bigs_auxiliar/downloader.py
+python src/bigs_auxiliar/filterer.py --database $DATABASE --patch_size $PATCH_SIZE --wsi_extension $SLIDE_EXT --wsi_dir $DATA_DIRECTORY --patches_dir $PATCHES_DIRECTORY/patches
+
 
 elif [ "$4" -eq 1 ]; then
 
