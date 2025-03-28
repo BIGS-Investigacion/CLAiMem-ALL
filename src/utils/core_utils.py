@@ -121,10 +121,9 @@ def train(datasets, cur, args):
         if device.type == 'cuda':
             loss_fn = loss_fn.cuda()
     else:
-        if args.weighted_sample:
-            loss_fn = FocalLoss(num_classes=args.n_classes)
-        else:
-            loss_fn = nn.CrossEntropyLoss()
+        weights = [1/(1 + len(val_split.slide_cls_ids[i])) for i in range(args.n_classes)]
+        weights = torch.tensor(weights, dtype=torch.float32, device=device)
+        loss_fn = nn.CrossEntropyLoss(weight=weights)
     print('Done!')
     
     print('\nInit Model...', end=' ')
@@ -148,10 +147,9 @@ def train(datasets, cur, args):
             if device.type == 'cuda':
                 instance_loss_fn = instance_loss_fn.cuda()
         else:
-            if args.weighted_sample:
-                instance_loss_fn = FocalLoss(num_classes=args.n_classes)
-            else:
-                instance_loss_fn = nn.CrossEntropyLoss()
+            weights = [1/(1+ len(val_split.slide_cls_ids[i])) for i in range(args.n_classes)]
+            weights = torch.tensor(weights, dtype=torch.float32, device=device)
+            instance_loss_fn = nn.CrossEntropyLoss(weight=weights)
         
         if args.model_type =='clam_sb':
             model = CLAM_SB(**model_dict, instance_loss_fn=instance_loss_fn)
