@@ -5,6 +5,6 @@ __pycache__/
 .splits
 .results*
 .eval_results
-.patches
+.patches*
 .features
 data/example
