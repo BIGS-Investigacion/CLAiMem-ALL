@@ -11,7 +11,7 @@ from huggingface_hub import hf_hub_download
 import torch
 
 import timm
-from timm.data import transforms
+from torchvision import transforms
 
 def load_WSI_names(csv_path:str, suffix:str) -> list[str]:
     """
