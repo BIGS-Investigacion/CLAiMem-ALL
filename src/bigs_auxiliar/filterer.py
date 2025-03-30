@@ -2,6 +2,7 @@ import argparse
 import os
 import h5py
 import openslide
+import timm
 import torch
 import numpy as np
 from tqdm import tqdm
@@ -30,39 +31,6 @@ def load_WSI_names(csv_path:str, suffix:str) -> list[str]:
                 wsi_names.append(row[1]+suffix)  # Assuming WSI names are in the first column
     return wsi_names
 
-class ModifiedVGG16(nn.Module):
-    def __init__(self):
-        super().__init__()
-        original = vgg16(pretrained=False)
-        self.features = original.features  # convolucionales sin cambios
-        self.avgpool = original.avgpool
-        
-        # Este bloque reemplaza el classifier original
-        self.classifier = nn.Sequential(
-            nn.Linear(25088, 1024),
-            nn.ReLU(inplace=True),
-            nn.Dropout(p=0.5),
-            nn.Linear(1024, 2)  # salida binaria
-        )
-        
-    def forward(self, x):
-        x = self.features(x)
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-        x = self.classifier(x)
-        return x
-
-
-from torchvision import transforms
-import csv
-
-# === Transformación basada en el JSON del modelo ===
-transform = transforms.Compose([
-    transforms.Resize(224),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.7238, 0.5716, 0.6779],
-                         std=[0.112, 0.1459, 0.1089])
-])
 
 
 # === CARGAR MODELO ===
@@ -76,7 +44,7 @@ model_name = "kaczmarj/breast-tumor-resnet34.tcga-brca"
 model_path = hf_hub_download(repo_id=model_name, filename="pytorch_model.bin")
 
 
-model = ModifiedVGG16()
+model = timm.create_model('resnet34', pretrained=False, num_classes=2)
 model.load_state_dict(torch.load(model_path))
 
 # Enviar modelo a dispositivo (CPU o GPU)
