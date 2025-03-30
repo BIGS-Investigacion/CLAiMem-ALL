@@ -68,12 +68,12 @@ transform = transforms.Compose([
 # === CARGAR MODELO ===
 
 # Nombre del modelo en Hugging Face
-model_name = "kaczmarj/breast-tumor-vgg16mod.tcga-brca"
-#model_name = "kaczmarj/breast-tumor-resnet34.tcga-brca"
+#model_name = "kaczmarj/breast-tumor-vgg16mod.tcga-brca"
+model_name = "kaczmarj/breast-tumor-resnet34.tcga-brca"
 
 
 # Descarga el archivo del modelo
-model_path = hf_hub_download(repo_id="kaczmarj/breast-tumor-vgg16mod.tcga-brca", filename="pytorch_model.bin")
+model_path = hf_hub_download(repo_id=model_name, filename="pytorch_model.bin")
 
 
 model = ModifiedVGG16()
