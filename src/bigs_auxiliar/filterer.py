@@ -97,7 +97,7 @@ for wsi in sorted(os.listdir(WSI_DIR)):
                 for (x, y) in tqdm(coords, desc="Filtrando parches tumorales"):
                     patch = slide.read_region((int(x), int(y)), 0, (PATCH_SIZE, PATCH_SIZE)).convert("RGB")
 
-                    input_tensor = transform(patch).unsqueeze(0).to(device)  # [1, 3, 224, 224]
+                    input_tensor = model(patch).unsqueeze(0).to(device)  # [1, 3, 224, 224]
                     with torch.no_grad():
                         outputs = model(input_tensor)
                         pred = torch.argmax(outputs, dim=1).item()
