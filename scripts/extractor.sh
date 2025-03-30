@@ -13,7 +13,7 @@ if [ "$4" -eq 0 ]; then
 
 python src/create_patches_fp.py --source $DATA_DIRECTORY --save_dir $PATCHES_DIRECTORY --patch_size $PATCH_SIZE --preset $PRESET_CSV --seg --patch --stitch
 python src/bigs_auxiliar/downloader.py
-python src/bigs_auxiliar/filterer.py --database $DATABASE --patch_size $PATCH_SIZE --wsi_extension $SLIDE_EXT --wsi_dir $DATA_DIRECTORY --patches_dir $PATCHES_DIRECTORY/patches
+python src/bigs_auxiliar/filterer.py --csv_list $CSV_FILE_NAME --database $DATABASE --patch_size $PATCH_SIZE --wsi_extension $SLIDE_EXT --wsi_dir $DATA_DIRECTORY --patches_dir $PATCHES_DIRECTORY/patches
 
 
 elif [ "$4" -eq 1 ]; then
