@@ -3,15 +3,15 @@ import csv
 import os
 import h5py
 import openslide
-import timm
 import torch
 import numpy as np
 from tqdm import tqdm
 import torch
-import torch.nn as nn
-from torchvision.models import vgg16
 from huggingface_hub import hf_hub_download
 import torch
+
+import timm
+from timm.data import transforms
 
 def load_WSI_names(csv_path:str, suffix:str) -> list[str]:
     """
@@ -70,6 +70,14 @@ WSI_DIR = args.wsi_dir
 PATCHES_DIR = args.patches_dir
 WSI_LIST = load_WSI_names(args.csv_list, WSI_EXTENSION)
 
+# === Transformación basada en el JSON del modelo ===
+transform = transforms.Compose([
+    transforms.Resize(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.7238, 0.5716, 0.6779],
+                         std=[0.112, 0.1459, 0.1089])
+])
+
 
 
 #RECORREMOS LOS PATCHES DE CADA WSI
@@ -97,7 +105,7 @@ for wsi in sorted(os.listdir(WSI_DIR)):
                 for (x, y) in tqdm(coords, desc="Filtrando parches tumorales"):
                     patch = slide.read_region((int(x), int(y)), 0, (PATCH_SIZE, PATCH_SIZE)).convert("RGB")
 
-                    input_tensor = model(patch).unsqueeze(0).to(device)  # [1, 3, 224, 224]
+                    input_tensor = transform(patch).unsqueeze(0).to(device)  # [1, 3, 224, 224]
                     with torch.no_grad():
                         outputs = model(input_tensor)
                         pred = torch.argmax(outputs, dim=1).item()
