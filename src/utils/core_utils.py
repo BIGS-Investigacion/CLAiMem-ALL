@@ -121,7 +121,7 @@ def train(datasets, cur, args):
         if device.type == 'cuda':
             loss_fn = loss_fn.cuda()
     else:
-        weights = [1/(len(train_split.slide_cls_ids[i])+ len(val_split.slide_cls_ids[i])) for i in range(args.n_classes)]
+        weights = [len(train_split)/(args.n_classes * len(train_split.slide_cls_ids[i])) for i in range(args.n_classes)]
         weights = torch.tensor(weights, dtype=torch.float32, device=device)
         loss_fn = nn.CrossEntropyLoss(weight=weights)
     print('Done!')
@@ -178,7 +178,7 @@ def train(datasets, cur, args):
 
     print('\nSetup EarlyStopping...', end=' ')
     if args.early_stopping:
-        early_stopping = EarlyStopping(patience = 20, stop_epoch=50, verbose = True)
+        early_stopping = EarlyStopping(patience = 10, stop_epoch=50, verbose = True)
 
     else:
         early_stopping = None
