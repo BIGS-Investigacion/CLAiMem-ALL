@@ -1,16 +1,16 @@
-$PWD/scripts/evaluator.sh cptac ihc /media/jorge/SP_PHD_U3/perfil_molecular/features 10
-$PWD/scripts/evaluator.sh cptac ihc_simple /media/jorge/SP_PHD_U3/perfil_molecular/features 10
-$PWD/scripts/evaluator.sh cptac pam50 /media/jorge/SP_PHD_U3/perfil_molecular/features 10
-$PWD/scripts/evaluator.sh cptac erbb2 /media/jorge/SP_PHD_U3/perfil_molecular/features 10
-$PWD/scripts/evaluator.sh cptac er /media/jorge/SP_PHD_U3/perfil_molecular/features 10
-$PWD/scripts/evaluator.sh cptac pr /media/jorge/SP_PHD_U3/perfil_molecular/features 10
+#$PWD/scripts/evaluator.sh cptac ihc /media/jorge/SP_PHD_U3/perfil_molecular/features 10
+#$PWD/scripts/evaluator.sh cptac ihc_simple /media/jorge/SP_PHD_U3/perfil_molecular/features 10
+#$PWD/scripts/evaluator.sh cptac pam50 /media/jorge/SP_PHD_U3/perfil_molecular/features 10
+#$PWD/scripts/evaluator.sh cptac erbb2 /media/jorge/SP_PHD_U3/perfil_molecular/features 10
+#$PWD/scripts/evaluator.sh cptac er /media/jorge/SP_PHD_U3/perfil_molecular/features 10
+#$PWD/scripts/evaluator.sh cptac pr /media/jorge/SP_PHD_U3/perfil_molecular/features 10
 
-$PWD/scripts/evaluator.sh cptac ihc /media/jorge/SP_PHD_U3/perfil_molecular/features 0
-$PWD/scripts/evaluator.sh cptac ihc_simple /media/jorge/SP_PHD_U3/perfil_molecular/features 0
-$PWD/scripts/evaluator.sh cptac pam50 /media/jorge/SP_PHD_U3/perfil_molecular/features 0
-$PWD/scripts/evaluator.sh cptac erbb2 /media/jorge/SP_PHD_U3/perfil_molecular/features 0
-$PWD/scripts/evaluator.sh cptac er /media/jorge/SP_PHD_U3/perfil_molecular/features 0
-$PWD/scripts/evaluator.sh cptac pr /media/jorge/SP_PHD_U3/perfil_molecular/features 0
+#$PWD/scripts/evaluator.sh cptac ihc /media/jorge/SP_PHD_U3/perfil_molecular/features 0
+#$PWD/scripts/evaluator.sh cptac ihc_simple /media/jorge/SP_PHD_U3/perfil_molecular/features 0
+#$PWD/scripts/evaluator.sh cptac pam50 /media/jorge/SP_PHD_U3/perfil_molecular/features 0
+#$PWD/scripts/evaluator.sh cptac erbb2 /media/jorge/SP_PHD_U3/perfil_molecular/features 0
+#$PWD/scripts/evaluator.sh cptac er /media/jorge/SP_PHD_U3/perfil_molecular/features 0
+#$PWD/scripts/evaluator.sh cptac pr /media/jorge/SP_PHD_U3/perfil_molecular/features 0
 
 $PWD/scripts/evaluator.sh tcga ihc /media/jorge/SP_PHD_U3/perfil_molecular/features 10
 $PWD/scripts/evaluator.sh tcga ihc_simple /media/jorge/SP_PHD_U3/perfil_molecular/features 10
