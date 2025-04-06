@@ -8,7 +8,6 @@ from models.model_clam import CLAM_MB, CLAM_SB
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.metrics import auc as calc_auc
-from cbloss.loss import FocalLoss
 
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
