@@ -16,6 +16,8 @@ from dataset_modules.dataset_generic import Generic_WSI_Classification_Dataset, 
 import h5py
 from utils.eval_utils import *
 
+
+
 # Training settings
 parser = argparse.ArgumentParser(description='CLAM Evaluation Script')
 parser.add_argument('--data_root_dir', type=str, default=None,
@@ -47,13 +49,26 @@ parser.add_argument('--csv_path', type=str, default=None,
                     help='manually specify the csv with the labels to use in classification (default: None)')
 parser.add_argument('--label_dict', type=str, default=None, 
                     help='manually specify the labels associated with an index to be accessed (default: None)')
+
+
+
 args = parser.parse_args()
 
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 args.save_dir = os.path.join('./.eval_results', 'EVAL_' + str(args.save_exp_code))
 
+#args.models_dir = os.path.join(args.results_dir, str(args.models_exp_code))
+args.models_dir = args.results_dir
 
-args.models_dir = os.path.join(args.results_dir, str(args.models_exp_code))
+print(args.drop_out) #= 0.7
+print(args.label_dict) #= {'positive':1, 'negative':0}
+print(args.model_size) #= 'small'
+print(args.k) #= 1 
+print(args.embed_dim) #= 512
+print(args.data_root_dir) #= '/media/jorge/SP_PHD_U3/perfil_molecular/features_20x/tcga/features_conch'
+print(args.csv_path) #= 'data/dataset_csv/tcga-er.csv'
+print(args.results_dir) #= '.results/cptac/er/clam_sb/ho---patient_strat-cptac-1743928666-tcga-1743928670'
+print(args.models_exp_code) #= 'conch'
 
 json_acceptable_string = args.label_dict.replace("'", "\"")
 args.labels = json.loads(json_acceptable_string)
@@ -127,8 +142,7 @@ if __name__ == "__main__":
             all_acc.append(1-test_error)
             df.to_csv(os.path.join(args.save_dir, 'fold_{}.csv'.format(folds[ckpt_idx])), index=False)
         except Exception as e:
-            print('Failed to load model: {}'.format(e))
-            
+            print('Failed to load model: {}'.format(e))       
     final_df = pd.DataFrame({'folds': folds, 'test_auc': all_auc, 'test_acc': all_acc})
     if len(folds) != args.k:
         save_name = 'summary_partial_{}_{}.csv'.format(folds[0], folds[-1])

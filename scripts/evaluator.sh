@@ -18,15 +18,25 @@ else
 fi
 
 
-
-MODEL_SIZE=small
+SEED=42
 DROP_OUT=0.7
+LR=1e-4
+REG=0.0001
+BAG_LOSS=ce
+INST_LOSS=ce
+B=64
+MODEL_SIZE=big
 CUDA_DEV=0
 RESULTS_DIR=.results
 
 for dir_database in $RESULTS_DIR/*; do
     if [ -d "$dir_database" ]; then
         DATABASE=$(basename $dir_database)
+        if [ "$K" -eq 1 ] && [ "$DATABASE" == 'cptac' ] ; then
+            DATABASE=tcga
+        elif [ "$K" -eq 1 ] && [ "$DATABASE" == 'tcga' ] ; then
+            DATABASE=cptac    
+        fi
         for aim in $dir_database/*; do
             if [[ $aim == *"pam50" ]]; then
                 CSV_FILE=data/dataset_csv/$DATABASE-subtype_pam50.csv
@@ -56,6 +66,7 @@ for dir_database in $RESULTS_DIR/*; do
                 echo "Invalid parameter. Use 'ihc', 'ihc_simple', 'pam50', 'er', 'pr' or 'erbb2'."
                 exit 1
             fi
+            
             for test in $aim/$CLAM_MODEL_TYPE/$VALIDATION*/*; do
                 valid=True
                 if [[ $test == *"cnn"* ]]; then
@@ -104,7 +115,6 @@ for dir_database in $RESULTS_DIR/*; do
                 fi
                 if [ "$valid" = True ]; then
                     FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-                    echo $FEATURES_DIRECTORY
                     EXP_CODE=$MODEL_NAME
                     EXP_CODE_SAVE=$(echo $test | tr '/' '-')-$MODEL_NAME-summary
                     CUDA_VISIBLE_DEVICES=$CUDA_DEV  python src/eval.py  --drop_out $DROP_OUT --model_size $MODEL_SIZE --k $K --models_exp_code $EXP_CODE --save_exp_code $EXP_CODE_SAVE --csv_path $CSV_FILE --label_dict $LABEL_DICT --model_type $CLAM_MODEL_TYPE --results_dir $test --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM
