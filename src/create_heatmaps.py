@@ -167,7 +167,7 @@ if __name__ == '__main__':
         model =  initiate_model(model_args, ckpt_path)
     else:
         raise NotImplementedError
-
+    #TODO: Change to load features from h5 file
     feature_extractor, img_transforms = get_encoder(encoder_args.model_name, target_img_size=encoder_args.target_img_size)
     _ = feature_extractor.eval()
     feature_extractor = feature_extractor.to(device)
@@ -299,8 +299,9 @@ if __name__ == '__main__':
             file.close()
 
         # load features 
+        
         features = torch.load(features_path)
-        features = features.view(model.size(0), -1)
+        features = features.view(-1, model_args.embed_dim)#features.view(model.size(0), -1)
         process_stack.loc[i, 'bag_size'] = len(features)
         
         wsi_object.saveSegmentation(mask_file)
