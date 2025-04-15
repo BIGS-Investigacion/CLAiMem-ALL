@@ -81,7 +81,8 @@ def parse_config_dict(args, config_dict):
     return config_dict
 
 if __name__ == '__main__':
-    config_path = os.path.join('heatmaps/configs', args.config_file)
+    #config_path = os.path.join('heatmaps/configs', args.config_file)
+    config_path = args.config_file
     config_dict = yaml.safe_load(open(config_path, 'r'))
     config_dict = parse_config_dict(args, config_dict)
 
@@ -150,7 +151,7 @@ if __name__ == '__main__':
         df = initialize_df(slides, def_seg_params, def_filter_params, def_vis_params, def_patch_params, use_heatmap_args=False)
         
     else:
-        df = pd.read_csv(os.path.join('heatmaps/process_lists', data_args.process_list))
+        df = pd.read_csv(data_args.process_list)
         df = initialize_df(df, def_seg_params, def_filter_params, def_vis_params, def_patch_params, use_heatmap_args=False)
 
     mask = df['process'] == 1
@@ -320,7 +321,7 @@ if __name__ == '__main__':
             process_stack.loc[i, 'Pred_{}'.format(c)] = Y_hats_str[c]
             process_stack.loc[i, 'p_{}'.format(c)] = Y_probs[c]
 
-        os.makedirs('heatmaps/results/', exist_ok=True)
+        os.makedirs('heatmaps/results/' + data_args.process_list.replace('.csv', ''), exist_ok=True)
         if data_args.process_list is not None:
             process_stack.to_csv('heatmaps/results/{}.csv'.format(data_args.process_list.replace('.csv', '')), index=False)
         else:
@@ -347,14 +348,31 @@ if __name__ == '__main__':
                     patch = wsi_object.wsi.read_region(tuple(s_coord), patch_args.patch_level, (patch_args.patch_size, patch_args.patch_size)).convert('RGB')
                     patch.save(os.path.join(sample_save_dir, '{}_{}_x_{}_y_{}_a_{:.3f}.png'.format(idx, slide_id, s_coord[0], s_coord[1], s_score)))
 
+        
+        samples = sample_args.reversed_samples
+        for sample in samples:
+            if sample['sample']:
+                tag = "reversed_label_{}_pred_{}".format(label, Y_hats[0])
+                sample_save_dir =  os.path.join(exp_args.production_save_dir, exp_args.save_exp_code, 'sampled_patches', str(tag), sample['name'])
+                os.makedirs(sample_save_dir, exist_ok=True)
+                print('sampling {}'.format(sample['name']))
+                sample_results = sample_rois(scores, coords, k=sample['k'], mode=sample['mode'], seed=sample['seed'], 
+                    score_start=sample.get('score_start', 0), score_end=sample.get('score_end', 1))
+                for idx, (s_coord, s_score) in enumerate(zip(sample_results['sampled_coords'], sample_results['sampled_scores'])):
+                    print('coord: {} score: {:.3f}'.format(s_coord, s_score))
+                    patch = wsi_object.wsi.read_region(tuple(s_coord), patch_args.patch_level, (patch_args.patch_size, patch_args.patch_size)).convert('RGB')
+                    patch.save(os.path.join(sample_save_dir, '{}_{}_x_{}_y_{}_a_{:.3f}.png'.format(idx, slide_id, s_coord[0], s_coord[1], s_score)))
+
         wsi_kwargs = {'top_left': top_left, 'bot_right': bot_right, 'patch_size': patch_size, 'step_size': step_size, 
-        'custom_downsample':patch_args.custom_downsample, 'level': patch_args.patch_level, 'use_center_shift': heatmap_args.use_center_shift}
+        'custom_downsample':patch_args.custom_downsample, 'level': patch_args.patch_level, 
+        'use_center_shift': heatmap_args.use_center_shift}
 
         heatmap_save_name = '{}_blockmap.tiff'.format(slide_id)
         if os.path.isfile(os.path.join(r_slide_save_dir, heatmap_save_name)):
             pass
         else:
-            heatmap = drawHeatmap(scores, coords, slide_path, wsi_object=wsi_object, cmap=heatmap_args.cmap, alpha=heatmap_args.alpha, use_holes=True, binarize=False, vis_level=-1, blank_canvas=False,
+            heatmap = drawHeatmap(scores, coords, slide_path, 
+                                  wsi_object=wsi_object, cmap=heatmap_args.cmap, alpha=heatmap_args.alpha, use_holes=True, binarize=False, vis_level=-1, blank_canvas=False,
                             thresh=-1, patch_size = vis_patch_size, convert_to_percentiles=True)
         
             heatmap.save(os.path.join(r_slide_save_dir, '{}_blockmap.png'.format(slide_id)))
@@ -391,7 +409,8 @@ if __name__ == '__main__':
             scores = dset[:]
             coords = coord_dset[:]
 
-        heatmap_vis_args = {'convert_to_percentiles': True, 'vis_level': heatmap_args.vis_level, 'blur': heatmap_args.blur, 'custom_downsample': heatmap_args.custom_downsample}
+        heatmap_vis_args = {'convert_to_percentiles': True, 'vis_level': heatmap_args.vis_level, 
+                            'blur': heatmap_args.blur, 'custom_downsample': heatmap_args.custom_downsample}
         if heatmap_args.use_ref_scores:
             heatmap_vis_args['convert_to_percentiles'] = False
 
