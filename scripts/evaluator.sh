@@ -79,7 +79,7 @@ for dir_database in $RESULTS_DIR/*; do
                     EMBED_DIM=768
                     MODEL_NAME=ctranspath
                 elif [[ $test == *"hibou_b"* ]]; then
-                    EMBED_DIM=1024
+                    EMBED_DIM=768
                     MODEL_NAME=hibou_b
                 elif [[ $test == *"hibou_l"* ]]; then
                     EMBED_DIM=1024
@@ -88,7 +88,7 @@ for dir_database in $RESULTS_DIR/*; do
                     EMBED_DIM=1536
                     MODEL_NAME=hoptimus0
                 elif [[ $test == *"provgigapath"* ]]; then
-                    EMBED_DIM=1024
+                    EMBED_DIM=1536
                     MODEL_NAME=provgigapath
                 elif [[ $test == *"phikon"* ]]; then
                     EMBED_DIM=1024
@@ -97,13 +97,13 @@ for dir_database in $RESULTS_DIR/*; do
                     EMBED_DIM=1024
                     MODEL_NAME=uni
                 elif [[ $test == *"uni_2"* ]]; then
-                    EMBED_DIM=1024
+                    EMBED_DIM=1536
                     MODEL_NAME=uni_2
                 elif [[ $test == *"musk"* ]]; then
                     EMBED_DIM=2048
                     MODEL_NAME=musk
                 elif [[ $test == *"retccl"* ]]; then
-                    EMBED_DIM=1024
+                    EMBED_DIM=2048
                     MODEL_NAME=retccl
                 elif [[ $test == *"virchow"* ]]; then
                     EMBED_DIM=2560
