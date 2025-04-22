@@ -12,9 +12,11 @@ if ! [[ "$2" =~ ^[0-9]+$ ]] || [ "$2" -lt 0 ]; then
 elif [ "$2" -eq 0 ]; then
     K=1
     VALIDATION="ho"
+    MODEL_SIZE=small
 else
     K=$2
     VALIDATION=$2-"cv"
+    MODEL_SIZE=big
 fi
 
 
@@ -25,7 +27,7 @@ REG=0.0001
 BAG_LOSS=ce
 INST_LOSS=ce
 B=64
-MODEL_SIZE=big
+
 CUDA_DEV=0
 RESULTS_DIR=.results
 
