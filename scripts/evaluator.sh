@@ -30,6 +30,7 @@ CUDA_DEV=0
 RESULTS_DIR=.results
 
 for dir_database in $RESULTS_DIR/*; do
+    echo $dir_database
     if [ -d "$dir_database" ]; then
         DATABASE=$(basename $dir_database)
         if [ "$K" -eq 1 ] && [ "$DATABASE" == 'cptac' ] ; then
@@ -93,12 +94,12 @@ for dir_database in $RESULTS_DIR/*; do
                 elif [[ $test == *"phikon"* ]]; then
                     EMBED_DIM=1024
                     MODEL_NAME=phikon
-                elif [[ $test == *"uni"* ]]; then
-                    EMBED_DIM=1024
-                    MODEL_NAME=uni
                 elif [[ $test == *"uni_2"* ]]; then
                     EMBED_DIM=1536
                     MODEL_NAME=uni_2
+                elif [[ $test == *"uni"* ]]; then
+                    EMBED_DIM=1024
+                    MODEL_NAME=uni
                 elif [[ $test == *"musk"* ]]; then
                     EMBED_DIM=2048
                     MODEL_NAME=musk
