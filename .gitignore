@@ -11,3 +11,4 @@ data/example
 heatmaps/heatmap*
 heatmaps/results
 heatmaps/process_lists
+metrics*

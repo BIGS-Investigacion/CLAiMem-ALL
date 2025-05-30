@@ -33,10 +33,11 @@ args = parser.parse_args()
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def infer_single_slide(model, features, label, reverse_label_dict, k=1):
-    features = features.to(device)
+    features = features.to(device, dtype=torch.float32)
     with torch.inference_mode():
         if isinstance(model, (CLAM_SB, CLAM_MB)):
-            model_results_dict = model(features)
+            #model_results_dict = model(features)
+            
             logits, Y_prob, Y_hat, A, _ = model(features)
             Y_hat = Y_hat.item()
 
@@ -336,7 +337,7 @@ if __name__ == '__main__':
 
         samples = sample_args.samples
         for sample in samples:
-            if sample['sample']:
+            if sample['sample'] and label_dict[label] == Y_hats[0]:
                 tag = "label_{}_pred_{}".format(label, Y_hats[0])
                 sample_save_dir =  os.path.join(exp_args.production_save_dir, exp_args.save_exp_code, 'sampled_patches', str(tag), sample['name'])
                 os.makedirs(sample_save_dir, exist_ok=True)
@@ -351,7 +352,7 @@ if __name__ == '__main__':
         
         samples = sample_args.reversed_samples
         for sample in samples:
-            if sample['sample']:
+            if sample['sample'] and label_dict[label] == Y_hats[0]:
                 tag = "reversed_label_{}_pred_{}".format(label, Y_hats[0])
                 sample_save_dir =  os.path.join(exp_args.production_save_dir, exp_args.save_exp_code, 'sampled_patches', str(tag), sample['name'])
                 os.makedirs(sample_save_dir, exist_ok=True)

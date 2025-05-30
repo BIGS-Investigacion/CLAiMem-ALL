@@ -12,11 +12,11 @@ exp_arguments:
   batch_size: 512
 data_arguments: 
   # where is data stored; can be a single str path or a dictionary of key, data_dir mapping
-  data_dir: /media/jorge/SP_PHD_U3/wsi/CPTAC-BRCA
+  data_dir: /media/jorge/SP_PHD_U3/wsi/TCGA
   # column name for key in data_dir (if a dict mapping is used)
   data_dir_key: source
   # csv list containing slide_ids (can additionally have seg/patch paramters, class labels, etc.)
-  process_list: data/dataset_csv/cptac-subtype_pam50.csv
+  process_list: data/dataset_csv/tcga-subtype_pam50.csv
   # preset file for segmentation/patching
   preset: config/presets/tcga.csv
   # file extention for slides
@@ -36,16 +36,16 @@ patching_arguments:
   custom_downsample: 1
 encoder_arguments:
   # arguments for the pretrained encoder model
-  model_name: conch_v1 # currently support: resnet50_trunc, uni_v1, conch
+  model_name: virchow # currently support: resnet50_trunc, uni_v1, conch
   target_img_size: 224 # resize images to this size before feeding to encoder
 model_arguments: 
   # arguments for initializing model from checkpoint
-  ckpt_path: .results/tcga/pam50/clam_mb/ho---patient_strat-tcga-1743934169-cptac-1743934174/conch/s_0_checkpoint.pt
+  ckpt_path: models/pam50/virchow/s_0_checkpoint.pt
   model_type: clam_mb # see utils/eval_utils/
   initiate_fn: initiate_model # see utils/eval_utils/
   model_size: small
   drop_out: 0.7
-  embed_dim: 512
+  embed_dim: 2560
 heatmap_arguments:
   # downsample at which to visualize heatmap (-1 refers to downsample closest to 32x downsample)
   vis_level: 1
@@ -79,13 +79,13 @@ sample_arguments:
     - name: "topk_high_attention"
       sample: true
       seed: 1
-      k: 32 # save top-k patches: topk, reverse_topk
+      k: 8 # save top-k patches: topk, reverse_topk
       mode: topk
   reversed_samples:
     - name: "bottomk_low_attention"
       sample: true
       seed: 1
-      k: 32 # save top-k patches: topk, reverse_topk
+      k: 8 # save top-k patches: topk, reverse_topk
       mode: reverse_topk
 
 
