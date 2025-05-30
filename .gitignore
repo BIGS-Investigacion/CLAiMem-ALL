@@ -8,7 +8,5 @@ __pycache__/
 .patches*
 .features
 data/example
-heatmaps/heatmap*
-heatmaps/results
-heatmaps/process_lists
+heatmaps/*
 metrics*
