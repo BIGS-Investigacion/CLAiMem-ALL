@@ -274,14 +274,27 @@ def infer(args):
 
     with torch.no_grad():
         for he, ihc, names in tqdm(test_loader, desc="Inferencia"):
+            # opcional: pásalos TODOS a GPU
             he = he.to(device)
+            ihc = ihc.to(device)
+
             fake = G(he)
+
             for i in range(fake.size(0)):
                 base, _ = os.path.splitext(names[i])
-                save_image((fake[i] + 1) * 0.5, os.path.join(out_dir, f"{base}_pred.png"))
-                triplet = torch.stack([he[i], fake[i], ihc[i]], dim=0)
-                save_image((triplet + 1) * 0.5, os.path.join(out_dir, f"{base}_triplet.png"), nrow=3)
 
+                # Guardar solo la predicción
+                save_image((fake[i].detach().cpu() + 1) * 0.5,
+                           os.path.join(out_dir, f"{base}_pred.png"))
+
+                # Guardar triptico HE | Pred | GT
+                he_cpu   = he[i].detach().cpu()
+                fake_cpu = fake[i].detach().cpu()
+                ihc_cpu  = ihc[i].detach().cpu()
+                triplet = torch.stack([he_cpu, fake_cpu, ihc_cpu], dim=0)
+                save_image((triplet + 1) * 0.5,
+                           os.path.join(out_dir, f"{base}_triplet.png"),
+                           nrow=3)
 
 def parse_args():
     p = argparse.ArgumentParser(description="HE → HER2 (IHC) con pix2pix")
