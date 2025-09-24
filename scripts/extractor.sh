@@ -3,9 +3,9 @@
 DATABASE=$1
 DATA_DIRECTORY=$2
 CSV_FILE_NAME=$3
-PATCHES_DIRECTORY=.patches_20x/$DATABASE
-PATCH_SIZE=256 # TO BE FIXED: Should be 128 if 10x, 256 if 20x, 512 if 40x...
-FEATURES_BASE=.features_20x
+PATCHES_DIRECTORY=.patches_40x/$DATABASE
+PATCH_SIZE=512 # TO BE FIXED: Should be 128 if 10x, 256 if 20x, 512 if 40x...
+FEATURES_BASE=.features_40x
 CUDA_DEV=0
 SLIDE_EXT=.svs
 
@@ -19,7 +19,7 @@ if [ "$4" -eq 0 ]; then
             echo "Using macenko file: $7"
         fi
     fi
-    python src/create_patches_fp.py --source $DATA_DIRECTORY --save_dir $PATCHES_DIRECTORY --patch_size $PATCH_SIZE --preset $PRESET_CSV --seg --patch --stitch $MACENKO
+    python src/create_patches_fp.py --source $DATA_DIRECTORY --save_dir $PATCHES_DIRECTORY --patch_size $PATCH_SIZE --preset $PRESET_CSV --no_auto_skip --seg --patch --stitch $MACENKO
     python src/bigs_auxiliar/downloader.py
     
 elif [ "$4" -eq 1 ]; then
