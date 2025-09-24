@@ -1,9 +1,8 @@
+import PIL
 import numpy as np
 import pandas as pd
-
+from torch import Tensor
 from torch.utils.data import Dataset
-from torchvision import transforms
-
 from PIL import Image
 import h5py
 
@@ -86,6 +85,26 @@ class Whole_Slide_Bag_FP(Dataset):
 		img = self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')
 
 		img = self.roi_transforms(img)
+		return {'img': img, 'coord': coord}
+
+class Virtual_Whole_Slide_Bag_FP(Whole_Slide_Bag_FP):
+	def __init__(self,
+		file_path,
+		wsi,
+		virtualizer,
+		img_transforms=None):
+		super().__init__(file_path, wsi, img_transforms)
+		self.evaluator = virtualizer
+		
+		
+	def __getitem__(self, idx):
+		with h5py.File(self.file_path,'r') as hdf5_file:
+			coord = hdf5_file['coords'][idx]
+		img= self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')
+		img = np.array(img)
+		img = self.evaluator.predict(img)
+		
+		img = self.roi_transforms(Image.fromarray(img))
 		return {'img': img, 'coord': coord}
 
 class Dataset_All_Bags(Dataset):
