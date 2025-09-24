@@ -13,6 +13,10 @@ import torch
 import timm
 from torchvision import transforms
 
+#python src/bigs_auxiliar/filterer.py --csv_list $CSV_FILE_NAME --database $DATABASE --patch_size $PATCH_SIZE --wsi_extension $SLIDE_EXT --wsi_dir $DATA_DIRECTORY --patches_dir $PATCHES_DIRECTORY/patches
+
+#Needs to fix issue regarding patch_level
+
 def load_WSI_names(csv_path:str, suffix:str) -> list[str]:
     """
     Load WSI names from a CSV file.
