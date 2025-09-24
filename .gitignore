@@ -9,4 +9,8 @@ __pycache__/
 .features
 data/example
 heatmaps/*
-metrics*
+*.csv
+runs*/*
+experiments/*
+data/samples/*
+scripts/custom/*
