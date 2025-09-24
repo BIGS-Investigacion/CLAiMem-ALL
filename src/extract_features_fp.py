@@ -52,7 +52,7 @@ def compute_w_loader(output_path, loader, model, verbose = 0):
 
 def auxiliar(dataset_, batch_size_, output_path_, model_, loader_kwargs, time_start):
 	features = []
-	loader = DataLoader(dataset=dataset_, batch_size=batch_size_, num_workers = 0, **loader_kwargs)
+	loader = DataLoader(dataset=dataset_, batch_size=batch_size_, **loader_kwargs)
 	output_file_path = compute_w_loader(output_path_, loader = loader, model = model_, verbose = 1)
 
 	time_elapsed = time.time() - time_start
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 	model = model.to(device)
 	total = len(bags_dataset)
 
-	loader_kwargs = {'num_workers': 8, 'pin_memory': True} if device.type == "cuda" else {}
+	loader_kwargs = {'num_workers': 0, 'pin_memory': True} if device.type == "cuda" else {}
 	if args.virtual:
 		# configurations of experiment
 		load_dotenv()
