@@ -4,6 +4,8 @@ import argparse
 import pdb
 from functools import partial
 
+from dotenv import load_dotenv
+from omegaconf import OmegaConf
 import torch
 import torch.nn as nn
 import timm
@@ -15,8 +17,9 @@ from tqdm import tqdm
 
 import numpy as np
 
+from models.virtual_stainer import BCIEvaluatorBasicExt
 from utils.file_utils import save_hdf5
-from dataset_modules.dataset_h5 import Dataset_All_Bags, Whole_Slide_Bag_FP
+from dataset_modules.dataset_h5 import Dataset_All_Bags, Virtual_Whole_Slide_Bag_FP, Whole_Slide_Bag_FP
 from models import get_encoder
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -47,6 +50,20 @@ def compute_w_loader(output_path, loader, model, verbose = 0):
 	
 	return output_path
 
+def auxiliar(dataset_, batch_size_, output_path_, model_, loader_kwargs, time_start):
+	features = []
+	loader = DataLoader(dataset=dataset_, batch_size=batch_size_, **loader_kwargs)
+	output_file_path = compute_w_loader(output_path_, loader = loader, model = model_, verbose = 1)
+
+	time_elapsed = time.time() - time_start
+	print('\ncomputing features for {} took {} s'.format(output_file_path, time_elapsed))
+
+	with h5py.File(output_file_path, "r") as file:
+		features = file['features'][:]
+		print('features size: ', features.shape)
+		print('coordinates size: ', file['coords'].shape)
+	return features
+
 
 parser = argparse.ArgumentParser(description='Feature Extraction')
 parser.add_argument('--data_h5_dir', type=str, default=None)
@@ -64,6 +81,7 @@ parser.add_argument('--model_name', type=str, default='resnet50_trunc', choices=
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--no_auto_skip', default=False, action='store_true')
 parser.add_argument('--target_patch_size', type=int, default=224)
+parser.add_argument('--virtual', default=False, action='store_true')
 args = parser.parse_args()
 
 
@@ -87,6 +105,20 @@ if __name__ == '__main__':
 	total = len(bags_dataset)
 
 	loader_kwargs = {'num_workers': 8, 'pin_memory': True} if device.type == "cuda" else {}
+	if args.virtual:
+		# configurations of experiment
+		load_dotenv()
+		# settings
+		apply_tta=os.getenv('BCI_STAINER_APPLY_TTA')
+		model_name=os.getenv('BCI_STAINER_MODEL')
+		config_file=os.getenv('BCI_STAINER_CONFIG') 
+		exp_root=os.getenv('BCI_STAINER_MODELS_DIR')   
+		
+		# loads configs
+		configs = OmegaConf.load(config_file)
+		model_path = os.path.join(exp_root, configs.exp, f'{model_name}.pth')
+
+		evaluator = BCIEvaluatorBasicExt(configs, model_path, apply_tta)
 
 	for bag_candidate_idx in tqdm(range(total)):
 		slide_id = bags_dataset[bag_candidate_idx].split(args.slide_ext)[0]
@@ -108,17 +140,15 @@ if __name__ == '__main__':
 										wsi=wsi, 
 										img_transforms=img_transforms)
 
-			loader = DataLoader(dataset=dataset, batch_size=args.batch_size, **loader_kwargs)
-			output_file_path = compute_w_loader(output_path, loader = loader, model = model, verbose = 1)
-
-			time_elapsed = time.time() - time_start
-			print('\ncomputing features for {} took {} s'.format(output_file_path, time_elapsed))
-
-			with h5py.File(output_file_path, "r") as file:
-				features = file['features'][:]
-				print('features size: ', features.shape)
-				print('coordinates size: ', file['coords'].shape)
-
+			features = auxiliar(dataset, args.batch_size, output_path, model, loader_kwargs, time_start)
+			
+			if args.virtual:
+				dataset = Virtual_Whole_Slide_Bag_FP(file_path=h5_file_path, 
+										wsi=wsi,virtualizer=evaluator, 
+										img_transforms=img_transforms)
+				virtual_features = auxiliar(dataset, args.batch_size, output_path, model, loader_kwargs, time_start)
+				features = np.concatenate((features, virtual_features), axis=1)  
+			
 			features = torch.from_numpy(features)
 			bag_base, _ = os.path.splitext(bag_name)
 			torch.save(features, os.path.join(args.feat_dir, 'pt_files', bag_base+'.pt'))

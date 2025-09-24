@@ -6,7 +6,7 @@ __pycache__/
 .results*
 .eval_results
 .patches*
-.features
+.features*
 data/example
 heatmaps/*
 *.csv
