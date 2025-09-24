@@ -23,7 +23,7 @@ elif [ "$4" -eq 1 ]; then
 elif [ "$4" -eq 2 ]; then
     
     export CONCH_CKPT_PATH='.checkpoint/conch/pytorch_model.bin'
-    BATCH_SIZE=128
+    BATCH_SIZE=512
     FEATURES_DIRECTORY=$FEATURES_BASE/$DATABASE/features_conch
     MODEL_NAME=conch_v1
     
