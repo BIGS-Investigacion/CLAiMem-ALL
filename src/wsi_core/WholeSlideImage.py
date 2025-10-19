@@ -27,7 +27,6 @@ class WholeSlideImage(object):
             path (str): fullpath to WSI file
         """
 
-#         self.name = ".".join(path.split("/")[-1].split('.')[:-1])
         self.name = os.path.splitext(os.path.basename(path))[0]
         self.wsi = openslide.open_slide(path)
         self.level_downsamples = self._assertLevelDownsamples()
@@ -36,9 +35,43 @@ class WholeSlideImage(object):
         self.contours_tissue = None
         self.contours_tumor = None
         self.hdf5_file = None
+        
+        # AÑADIDO: Normalizer para Macenko
+        self.normalizer = None
 
     def getOpenSlide(self):
         return self.wsi
+    
+    # ========================================================================
+    # AÑADIDO: Método para aplicar normalización Macenko a un patch
+    # ========================================================================
+    def normalize_patch(self, patch_pil):
+        """
+        Aplica normalización Macenko a un patch PIL si el normalizer está configurado.
+        
+        Args:
+            patch_pil: PIL Image
+            
+        Returns:
+            PIL Image (normalizado si normalizer está configurado, original si no)
+        """
+        if self.normalizer is None:
+            return patch_pil
+        
+        try:
+            # Convertir PIL a numpy array (H, W, 3)
+            patch_np = np.array(patch_pil)
+            
+            # Aplicar normalización con torchstain
+            # torchstain devuelve numpy array (H, W, 3)
+            patch_normalized = self.normalizer.transform(patch_np)
+            
+            # Convertir de vuelta a PIL
+            return Image.fromarray(patch_normalized.astype(np.uint8))
+        except Exception as e:
+            # Si falla la normalización, devolver patch original
+            print(f"Warning: Macenko normalization failed for patch, using original: {e}")
+            return patch_pil
 
     def initXML(self, xml_path):
         def _createContour(coord_list):
@@ -166,7 +199,19 @@ class WholeSlideImage(object):
         
         # Find and filter contours
         contours, hierarchy = cv2.findContours(img_otsu, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE) # Find contours 
-        hierarchy = np.squeeze(hierarchy, axis=(0,))[:, 2:]
+        
+        # CRÍTICO: Manejar caso cuando no hay contornos o hierarchy es None
+        if hierarchy is not None and len(hierarchy.shape) == 3:
+            hierarchy = np.squeeze(hierarchy, axis=(0,))[:, 2:]
+        elif hierarchy is not None and len(hierarchy.shape) == 2:
+            hierarchy = hierarchy[:, 2:]
+        else:
+            # No hay contornos válidos
+            print("Warning: No contours found during tissue segmentation")
+            self.contours_tissue = []
+            self.holes_tissue = []
+            return
+            
         if filter_params: foreground_contours, hole_contours = _filter_contours(contours, hierarchy, filter_params)  # Necessary for filtering out artifacts
 
         self.contours_tissue = self.scaleContourDim(foreground_contours, scale)
@@ -317,6 +362,10 @@ class WholeSlideImage(object):
                 
                 count+=1
                 patch_PIL = self.wsi.read_region((x,y), patch_level, (patch_size, patch_size)).convert('RGB')
+                
+                # AÑADIDO: Aplicar normalización Macenko si está configurada
+                patch_PIL = self.normalize_patch(patch_PIL)
+                
                 if custom_downsample > 1:
                     patch_PIL = patch_PIL.resize((target_patch_size, target_patch_size))
                 
@@ -735,7 +784,3 @@ class WholeSlideImage(object):
         tissue_mask = tissue_mask.astype(bool)
         print('detected {}/{} of region as tissue'.format(tissue_mask.sum(), tissue_mask.size))
         return tissue_mask
-
-
-
-

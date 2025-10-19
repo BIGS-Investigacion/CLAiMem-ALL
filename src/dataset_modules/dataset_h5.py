@@ -9,13 +9,16 @@ import h5py
 class Whole_Slide_Bag(Dataset):
 	def __init__(self,
 		file_path,
-		img_transforms=None):
+		img_transforms=None,
+		normalizer=None):  # ← NUEVO: Añadido soporte para Macenko
 		"""
 		Args:
 			file_path (string): Path to the .h5 file containing patched data.
-			roi_transforms (callable, optional): Optional transform to be applied on a sample
+			img_transforms (callable, optional): Optional transform to be applied on a sample
+			normalizer (MacenkoNormalizer, optional): Macenko normalizer object
 		"""
 		self.roi_transforms = img_transforms
+		self.normalizer = normalizer  # ← NUEVO
 		self.file_path = file_path
 
 		with h5py.File(self.file_path, "r") as f:
@@ -34,6 +37,11 @@ class Whole_Slide_Bag(Dataset):
 				print(name, value)
 
 		print('transformations:', self.roi_transforms)
+		# ← NUEVO
+		if self.normalizer is not None:
+			print('macenko normalization: ENABLED')
+		else:
+			print('macenko normalization: DISABLED')
 
 	def __getitem__(self, idx):
 		with h5py.File(self.file_path,'r') as hdf5_file:
@@ -41,6 +49,22 @@ class Whole_Slide_Bag(Dataset):
 			coord = hdf5_file['coords'][idx]
 		
 		img = Image.fromarray(img)
+		
+		# ← NUEVO: Aplicar normalización Macenko si está disponible
+		if self.normalizer is not None:
+			try:
+				img_array = np.array(img)
+				# Validar dimensiones
+				if img_array.ndim != 3 or img_array.shape[2] != 3:
+					print(f"⚠️  Warning: Patch at index {idx} has unexpected shape {img_array.shape}")
+					print(f"   Skipping Macenko normalization for this patch")
+				else:
+					img_array = self.normalizer.transform(img_array)
+					img = Image.fromarray(img_array)
+			except Exception as e:
+				print(f"⚠️  Error applying Macenko at index {idx}: {e}")
+				print(f"   Using original patch")
+		
 		img = self.roi_transforms(img)
 		return {'img': img, 'coord': coord}
 
@@ -48,14 +72,18 @@ class Whole_Slide_Bag_FP(Dataset):
 	def __init__(self,
 		file_path,
 		wsi,
-		img_transforms=None):
+		img_transforms=None,
+		normalizer=None):  # ← NUEVO: Añadido soporte para Macenko
 		"""
 		Args:
 			file_path (string): Path to the .h5 file containing patched data.
+			wsi: openslide object
 			img_transforms (callable, optional): Optional transform to be applied on a sample
+			normalizer (MacenkoNormalizer, optional): Macenko normalizer object
 		"""
 		self.wsi = wsi
 		self.roi_transforms = img_transforms
+		self.normalizer = normalizer  # ← NUEVO
 
 		self.file_path = file_path
 
@@ -78,11 +106,31 @@ class Whole_Slide_Bag_FP(Dataset):
 
 		print('\nfeature extraction settings')
 		print('transformations: ', self.roi_transforms)
+		# ← NUEVO
+		if self.normalizer is not None:
+			print('macenko normalization: ENABLED')
+		else:
+			print('macenko normalization: DISABLED')
 
 	def __getitem__(self, idx):
 		with h5py.File(self.file_path,'r') as hdf5_file:
 			coord = hdf5_file['coords'][idx]
 		img = self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')
+
+		# ← NUEVO: Aplicar normalización Macenko si está disponible
+		if self.normalizer is not None:
+			try:
+				img_array = np.array(img)
+				# Validar que el patch tenga el tamaño correcto
+				if img_array.shape != (self.patch_size, self.patch_size, 3):
+					print(f"⚠️  Warning: Patch at {coord} has unexpected shape {img_array.shape}, expected ({self.patch_size}, {self.patch_size}, 3)")
+					print(f"   Skipping Macenko normalization for this patch")
+				else:
+					img_array = self.normalizer.transform(img_array)
+					img = Image.fromarray(img_array)
+			except Exception as e:
+				print(f"⚠️  Error applying Macenko at coord {coord}: {e}")
+				print(f"   Using original patch")
 
 		img = self.roi_transforms(img)
 		return {'img': img, 'coord': coord}
@@ -92,16 +140,39 @@ class Virtual_Whole_Slide_Bag_FP(Whole_Slide_Bag_FP):
 		file_path,
 		wsi,
 		virtualizer,
-		img_transforms=None):
-		super().__init__(file_path, wsi, img_transforms)
+		img_transforms=None,
+		normalizer=None):  # ← NUEVO: Añadido soporte para Macenko
+		"""
+		Args:
+			file_path (string): Path to the .h5 file containing patched data.
+			wsi: openslide object
+			virtualizer: virtual stainer model
+			img_transforms (callable, optional): Optional transform to be applied on a sample
+			normalizer (MacenkoNormalizer, optional): Macenko normalizer object
+		"""
+		super().__init__(file_path, wsi, img_transforms, normalizer)  # ← NUEVO: pasar normalizer
 		self.evaluator = virtualizer
 		
 		
 	def __getitem__(self, idx):
 		with h5py.File(self.file_path,'r') as hdf5_file:
 			coord = hdf5_file['coords'][idx]
-		img= self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')
+		img = self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')
 		img = np.array(img)
+		
+		# ← NUEVO: Aplicar normalización Macenko ANTES del virtual stainer
+		if self.normalizer is not None:
+			try:
+				# Validar que el patch tenga el tamaño correcto
+				if img.shape != (self.patch_size, self.patch_size, 3):
+					print(f"⚠️  Warning: Patch at {coord} has unexpected shape {img.shape}, expected ({self.patch_size}, {self.patch_size}, 3)")
+					print(f"   Skipping Macenko normalization for this patch")
+				else:
+					img = self.normalizer.transform(img)
+			except Exception as e:
+				print(f"⚠️  Error applying Macenko at coord {coord}: {e}")
+				print(f"   Using original patch")
+		
 		img = self.evaluator.predict(img)
 		
 		img = self.roi_transforms(Image.fromarray(img))
@@ -117,7 +188,3 @@ class Dataset_All_Bags(Dataset):
 
 	def __getitem__(self, idx):
 		return self.df['slide_id'][idx]
-
-
-
-

@@ -1,28 +1,30 @@
 import time
 import os
 import argparse
-import pdb
-from functools import partial
-
 from dotenv import load_dotenv
 from omegaconf import OmegaConf
 import torch
-import torch.nn as nn
-import timm
 from torch.utils.data import DataLoader
-from PIL import Image
 import h5py
 import openslide
 from tqdm import tqdm
 
 import numpy as np
+import torchstain
 
+from bigs_auxiliar.normalizers import MacenkoNormalizer
 from models.virtual_stainer import BCIEvaluatorBasicExt
 from utils.file_utils import save_hdf5
 from dataset_modules.dataset_h5 import Dataset_All_Bags, Virtual_Whole_Slide_Bag_FP, Whole_Slide_Bag_FP
 from models import get_encoder
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+
+
+# ============================================================================
+# FUNCIONES AUXILIARES
+# ============================================================================
 
 def compute_w_loader(output_path, loader, model, verbose = 0):
 	"""
@@ -65,6 +67,10 @@ def auxiliar(dataset_, batch_size_, output_path_, model_, loader_kwargs, time_st
 	return features
 
 
+# ============================================================================
+# ARGUMENTOS
+# ============================================================================
+
 parser = argparse.ArgumentParser(description='Feature Extraction')
 parser.add_argument('--data_h5_dir', type=str, default=None)
 parser.add_argument('--data_slide_dir', type=str, default=None)
@@ -82,10 +88,55 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--no_auto_skip', default=False, action='store_true')
 parser.add_argument('--target_patch_size', type=int, default=224)
 parser.add_argument('--virtual', default=False, action='store_true')
+
+# Argumentos para Macenko normalization
+parser.add_argument('--use_macenko', default=False, action='store_true',
+					help='Apply Macenko stain normalization during feature extraction')
+parser.add_argument('--reference_image', type=str, default=None,
+					help='Path to Macenko reference image (.npy). Required if --use_macenko is set')
+
 args = parser.parse_args()
 
 
+# ============================================================================
+# MAIN
+# ============================================================================
+
 if __name__ == '__main__':
+	
+	# ========================================================================
+	# Inicializar Macenko normalizer si es necesario
+	# ========================================================================
+	normalizer = None
+	if args.use_macenko:
+		print("\n" + "="*70)
+		print("MACENKO STAIN NORMALIZATION ENABLED")
+		print("="*70)
+		
+		if args.reference_image is None:
+			raise ValueError(
+				"❌ --reference_image is required when using --use_macenko\n"
+				"   Please provide the path to the Macenko reference .npy file"
+			)
+		
+		if not os.path.exists(args.reference_image):
+			raise ValueError(f"❌ Reference image not found: {args.reference_image}")
+		
+		print(f"\n📸 Loading Macenko reference from: {args.reference_image}")
+		ref_image = np.load(args.reference_image)
+		print(f"   Reference shape: {ref_image.shape}")
+		
+		# Inicializar con verbose=False para evitar demasiados prints
+		normalizer = MacenkoNormalizer()
+		normalizer.fit(ref_image)
+		print(f"✓ Macenko normalizer fitted and ready")
+		print(f"   Min tissue percentage: 5% (patches with less tissue will be skipped)")
+		print("="*70 + "\n")
+	
+	# ========================================================================
+	# Inicialización del dataset
+	# ========================================================================
+	
 	print('initializing dataset')
 	csv_path = args.csv_path
 	if csv_path is None:
@@ -105,6 +156,7 @@ if __name__ == '__main__':
 	total = len(bags_dataset)
 
 	loader_kwargs = {'num_workers': 0, 'pin_memory': True} if device.type == "cuda" else {}
+	
 	if args.virtual:
 		# configurations of experiment
 		load_dotenv()
@@ -120,6 +172,10 @@ if __name__ == '__main__':
 
 		evaluator = BCIEvaluatorBasicExt(configs, model_path, apply_tta)
 
+	# ========================================================================
+	# Procesamiento de cada slide
+	# ========================================================================
+	
 	for bag_candidate_idx in tqdm(range(total)):
 		slide_id = bags_dataset[bag_candidate_idx].split(args.slide_ext)[0]
 		bag_name = slide_id+'.h5'
@@ -136,16 +192,21 @@ if __name__ == '__main__':
 			output_path = os.path.join(args.feat_dir, 'h5_files', bag_name)
 			time_start = time.time()
 			wsi = openslide.open_slide(slide_file_path)
+			
+			# CRÍTICO: Pasar normalizer al dataset
 			dataset = Whole_Slide_Bag_FP(file_path=h5_file_path, 
 										wsi=wsi, 
-										img_transforms=img_transforms)
+										img_transforms=img_transforms,
+										normalizer=normalizer)  # ← Pasar normalizer
 
 			features = auxiliar(dataset, args.batch_size, output_path, model, loader_kwargs, time_start)
 			
 			if args.virtual:
 				dataset = Virtual_Whole_Slide_Bag_FP(file_path=h5_file_path, 
-										wsi=wsi,virtualizer=evaluator, 
-										img_transforms=img_transforms)
+										wsi=wsi,
+										virtualizer=evaluator, 
+										img_transforms=img_transforms,
+										normalizer=normalizer)  # ← Pasar normalizer también aquí
 				virtual_features = auxiliar(dataset, args.batch_size, output_path, model, loader_kwargs, time_start)
 				features = np.concatenate((features, virtual_features), axis=1)  
 			
@@ -154,6 +215,3 @@ if __name__ == '__main__':
 			torch.save(features, os.path.join(args.feat_dir, 'pt_files', bag_base+'.pt'))
 		except Exception as e:
 			print(e)
-
-
-

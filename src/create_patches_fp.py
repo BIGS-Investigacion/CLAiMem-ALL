@@ -1,4 +1,5 @@
 # internal imports
+from bigs_auxiliar.normalizers import MacenkoNormalizer
 from wsi_core.WholeSlideImage import WholeSlideImage
 from wsi_core.wsi_utils import StitchCoords
 from wsi_core.batch_process_utils import initialize_df
@@ -7,9 +8,21 @@ import os
 import numpy as np
 import time
 import argparse
-import pdb
 import pandas as pd
 from tqdm import tqdm
+import torch
+import torchstain
+import cv2
+from PIL import Image
+import shutil
+import h5py
+
+
+
+
+# ============================================================================
+# FUNCIONES AUXILIARES
+# ============================================================================
 
 def stitching(file_path, wsi_object, downscale = 64):
 	start = time.time()
@@ -32,18 +45,25 @@ def segment(WSI_object, seg_params = None, filter_params = None, mask_file = Non
 	seg_time_elapsed = time.time() - start_time   
 	return WSI_object, seg_time_elapsed
 
+
 def patching(WSI_object, **kwargs):
+	"""
+	Patching sin pasar normalizer (ya está en WSI_object.normalizer)
+	"""
 	### Start Patch Timer
 	start_time = time.time()
 
-	# Patch
+	# Patch (normalizer ya está en WSI_object)
 	file_path = WSI_object.process_contours(**kwargs)
-
 
 	### Stop Patch Timer
 	patch_time_elapsed = time.time() - start_time
 	return file_path, patch_time_elapsed
 
+
+# ============================================================================
+# FUNCIÓN PRINCIPAL seg_and_patch
+# ============================================================================
 
 def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_dir, 
 				  patch_size = 256, step_size = 256, 
@@ -56,10 +76,9 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 				  use_default_params = False, 
 				  seg = False, save_mask = True, 
 				  stitch= False, 
-				  patch = False, auto_skip=True, process_list = None):
+				  patch = False, auto_skip=True, process_list = None,
+				  normalizer=None):
 	
-
-
 	slides = sorted(os.listdir(source))
 	slides = [slide for slide in slides if os.path.isfile(os.path.join(source, slide))]
 	if process_list is None:
@@ -102,9 +121,13 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 			df.loc[idx, 'status'] = 'already_exist'
 			continue
 
-		# Inialize WSI
+		# Initialize WSI
 		full_path = os.path.join(source, slide)
 		WSI_object = WholeSlideImage(full_path)
+		
+		# CRÍTICO: Asignar normalizer como ATRIBUTO del objeto
+		if normalizer is not None:
+			WSI_object.normalizer = normalizer
 
 		if use_default_params:
 			current_vis_params = vis_params.copy()
@@ -117,7 +140,6 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 			current_filter_params = {}
 			current_seg_params = {}
 			current_patch_params = {}
-
 
 			for key in vis_params.keys():
 				if legacy_support and key == 'vis_level':
@@ -183,7 +205,6 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 		df.loc[idx, 'vis_level'] = current_vis_params['vis_level']
 		df.loc[idx, 'seg_level'] = current_seg_params['seg_level']
 
-
 		seg_time_elapsed = -1
 		if seg:
 			WSI_object, seg_time_elapsed = segment(WSI_object, current_seg_params, current_filter_params) 
@@ -193,11 +214,12 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 			mask_path = os.path.join(mask_save_dir, slide_id+'.jpg')
 			mask.save(mask_path)
 
-		patch_time_elapsed = -1 # Default time
+		patch_time_elapsed = -1
 		if patch:
 			current_patch_params.update({'patch_level': patch_level, 'patch_size': patch_size, 'step_size': step_size, 
 										 'save_path': patch_save_dir})
-			file_path, patch_time_elapsed = patching(WSI_object = WSI_object,  **current_patch_params,)
+			# NO pasar normalizer (ya está en WSI_object.normalizer)
+			file_path, patch_time_elapsed = patching(WSI_object=WSI_object, **current_patch_params)
 		
 		stitch_time_elapsed = -1
 		if stitch:
@@ -221,13 +243,17 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 		patch_times /= total
 		stitch_times /= total
 
-
 	df.to_csv(os.path.join(save_dir, 'process_list_autogen.csv'), index=False)
 	print("average segmentation time in s per slide: {}".format(seg_times))
 	print("average patching time in s per slide: {}".format(patch_times))
 	print("average stiching time in s per slide: {}".format(stitch_times))
 		
 	return seg_times, patch_times
+
+
+# ============================================================================
+# ARGUMENTOS
+# ============================================================================
 
 parser = argparse.ArgumentParser(description='seg and patch')
 parser.add_argument('--source', type = str,
@@ -249,8 +275,35 @@ parser.add_argument('--patch_level', type=int, default=0,
 parser.add_argument('--process_list',  type = str, default=None,
 					help='name of list of images to process with parameters (.csv)')
 
+# Argumentos para stain normalization
+parser.add_argument('--use_macenko', default=False, action='store_true',
+					help='Apply Macenko stain normalization (saves to separate directory with _macenko suffix)')
+parser.add_argument('--reference_image', type=str, default=None,
+					help='Path to reference image (.npy) for stain normalization. If not provided, uses slide with most tissue as reference')
+parser.add_argument('--original_masks_dir', type=str, default=None,
+					help='Path to original masks directory (for loading segmentations when using Macenko). If not provided, will look in save_dir without _macenko suffix')
+
+
+# ============================================================================
+# MAIN
+# ============================================================================
+
 if __name__ == '__main__':
 	args = parser.parse_args()
+
+	# ========================================================================
+	# CRÍTICO: Si se usa Macenko, añadir sufijo a los directorios de salida
+	# ========================================================================
+	if args.use_macenko:
+		# Añadir sufijo '_macenko' al directorio de salida
+		base_save_dir = args.save_dir
+		if not base_save_dir.endswith('_macenko'):
+			args.save_dir = base_save_dir.rstrip('/') + '_macenko'
+			print("\n" + "="*70)
+			print("⚠   MACENKO MODE: Output will be saved to a separate directory")
+			print(f"   Original: {base_save_dir}")
+			print(f"   Macenko:  {args.save_dir}")
+			print("="*70 + "\n")
 
 	patch_save_dir = os.path.join(args.save_dir, 'patches')
 	mask_save_dir = os.path.join(args.save_dir, 'masks')
@@ -258,7 +311,6 @@ if __name__ == '__main__':
 
 	if args.process_list:
 		process_list = os.path.join(args.save_dir, args.process_list)
-
 	else:
 		process_list = None
 
@@ -277,6 +329,34 @@ if __name__ == '__main__':
 		print("{} : {}".format(key, val))
 		if key not in ['source']:
 			os.makedirs(val, exist_ok=True)
+	
+	# ========================================================================
+	# Si usa Macenko, copiar máscaras del directorio original
+	# ========================================================================
+	if args.use_macenko:
+		# Determinar directorio de máscaras originales
+		if args.original_masks_dir is not None:
+			original_mask_dir = args.original_masks_dir
+		else:
+			original_save_dir = args.save_dir.replace('_macenko', '')
+			original_mask_dir = os.path.join(original_save_dir, 'masks')
+		
+		if os.path.exists(original_mask_dir) and os.path.isdir(original_mask_dir):
+			print(f"\n📋 Copying segmentation masks from {original_mask_dir} to {mask_save_dir}...")
+			mask_files = [f for f in os.listdir(original_mask_dir) if f.endswith('.pkl')]
+			
+			if len(mask_files) > 0:
+				for mask_file in mask_files:
+					src = os.path.join(original_mask_dir, mask_file)
+					dst = os.path.join(mask_save_dir, mask_file)
+					if not os.path.exists(dst):
+						shutil.copy2(src, dst)
+				print(f"✓ Copied {len(mask_files)} segmentation mask(s)")
+			else:
+				print(f"⚠  Warning: No .pkl mask files found in {original_mask_dir}")
+		else:
+			print(f"⚠  Warning: Original mask directory not found: {original_mask_dir}")
+			print("   Segmentation will be performed from scratch.")
 
 	seg_params = {'seg_level': -1, 'sthresh': 8, 'mthresh': 7, 'close': 4, 'use_otsu': False,
 				  'keep_ids': 'none', 'exclude_ids': 'none'}
@@ -305,9 +385,154 @@ if __name__ == '__main__':
 
 	print(parameters)
 
+	# ========================================================================
+	# Inicializar Macenko normalizer
+	# ========================================================================
+	
+	normalizer = None
+	if args.use_macenko:
+		print("\n" + "="*70)
+		print("MACENKO STAIN NORMALIZATION ENABLED")
+		print("="*70)
+		
+		normalizer = MacenkoNormalizer()
+		
+		# Si no hay referencia, crear una con la WSI que tenga más tejido
+		if args.reference_image is None:
+			print("No reference image provided. Finding slide with most tissue content...")
+			
+			# MEJOR MÉTODO: Usar archivos .h5 que contienen coordenadas EXACTAS de patches
+			original_save_dir = args.save_dir.replace('_macenko', '')
+			original_patch_dir = os.path.join(original_save_dir, 'patches')
+			
+			# Obtener lista de slides
+			all_slides = sorted([s for s in os.listdir(args.source) 
+								if os.path.isfile(os.path.join(args.source, s))])
+			
+			if len(all_slides) == 0:
+				raise ValueError("No slides found in source directory")
+			
+			slides_to_check = all_slides[:min(10, len(all_slides))]
+			
+			best_slide = None
+			max_tissue_patches = 0
+			best_patch_coords = None
+			
+			if os.path.exists(original_patch_dir):
+				print(f"✓ Found patches directory: {original_patch_dir}")
+				print(f"Analyzing {len(slides_to_check)} slides to find best reference...")
+				
+				for slide_name in tqdm(slides_to_check, desc="Finding best reference"):
+					slide_id = os.path.splitext(slide_name)[0]
+					h5_file = os.path.join(original_patch_dir, slide_id + '.h5')
+					
+					print(f"\n  {slide_name}:")
+					
+					if not os.path.exists(h5_file):
+						print(f"    ⚠  No .h5 file found, skipping...")
+						continue
+					
+					try:
+						# Leer archivo .h5 para obtener coordenadas de patches
+						with h5py.File(h5_file, 'r') as f:
+							coords = f['coords'][:]
+							num_patches = len(coords)
+							
+							print(f"    ✓ Found {num_patches} patches")
+							
+							if num_patches > max_tissue_patches:
+								max_tissue_patches = num_patches
+								best_slide = slide_name
+								# Seleccionar un patch del medio (más probable que tenga tejido representativo)
+								middle_idx = num_patches // 2
+								best_patch_coords = coords[middle_idx]
+								print(f"    ✓ New best! Patch at coords: {best_patch_coords}")
+					
+					except Exception as e:
+						print(f"    ✗ Error reading .h5: {e}")
+						continue
+				
+				if best_slide is None or best_patch_coords is None:
+					raise ValueError(
+						f"❌ No valid .h5 files found in {original_patch_dir}!\n"
+						"Please run patching first WITHOUT --use_macenko:\n"
+						f"  python create_patches_fp.py --source {args.source} --save_dir {original_save_dir} --seg --patch --stitch\n"
+						"Then re-run with --use_macenko"
+					)
+				
+				print(f"\n✓ Selected {best_slide} as reference ({max_tissue_patches} patches)")
+				print(f"  Using patch at coordinates: {best_patch_coords}")
+				
+				# Cargar WSI correspondiente
+				slide_path = os.path.join(args.source, best_slide)
+				wsi_obj = WholeSlideImage(slide_path)
+				wsi = wsi_obj.getOpenSlide()
+				
+				print(f"\n📸 Extracting reference patch from WSI...")
+				
+				# Extraer el patch usando las coordenadas exactas del .h5
+				x, y = best_patch_coords
+				patch_size = args.patch_size
+				level = args.patch_level
+				
+				# Leer región
+				ref_region = wsi.read_region((int(x), int(y)), level, (patch_size, patch_size))
+				ref_region_rgb = np.array(ref_region.convert('RGB'))
+				
+				print(f"  ✓ Extracted {patch_size}x{patch_size} patch at level {level}")
+				print(f"    Coordinates: ({x}, {y})")
+				
+				# VERIFICAR que la región tiene contenido
+				gray_check = cv2.cvtColor(ref_region_rgb, cv2.COLOR_RGB2GRAY)
+				non_background = np.sum((gray_check > 10) & (gray_check < 245))
+				total_pixels = patch_size * patch_size
+				tissue_percentage = non_background / total_pixels
+				
+				print(f"  Region statistics:")
+				print(f"    Tissue pixels: {non_background:,} / {total_pixels:,} ({tissue_percentage:.1%})")
+				print(f"    Mean intensity: {gray_check.mean():.1f}")
+				print(f"    Intensity range: [{gray_check.min()}, {gray_check.max()}]")
+				
+				if tissue_percentage < 0.3:
+					print(f"\n⚠  Warning: Selected patch has low tissue content ({tissue_percentage:.1%})")
+					print(f"  You may want to manually specify --reference_image")
+				
+			else:
+				raise ValueError(
+					f"❌ Patches directory not found: {original_patch_dir}\n"
+					"Please run patching first WITHOUT --use_macenko:\n"
+					f"  python create_patches_fp.py --source {args.source} --save_dir {original_save_dir} --seg --patch --stitch\n"
+					"Then re-run with --use_macenko"
+				)
+			
+			# Fit normalizer
+			normalizer.fit(ref_region_rgb)
+			
+			# Guardar referencia para reutilizar
+			ref_save_path = os.path.join(args.save_dir, 'macenko_reference.npy')
+			np.save(ref_save_path, ref_region_rgb)
+			print(f"✓ Reference saved to: {ref_save_path}")
+			print(f"  (Use --reference_image {ref_save_path} for other cohorts)")
+			
+			# También guardar imagen visual de la referencia para inspección
+			ref_vis_path = os.path.join(args.save_dir, 'macenko_reference.jpg')
+			Image.fromarray(ref_region_rgb).save(ref_vis_path)
+			print(f"✓ Reference visualization saved to: {ref_vis_path}")
+		else:
+			# Cargar referencia existente
+			print(f"Loading reference from: {args.reference_image}")
+			ref_image = np.load(args.reference_image)
+			normalizer.fit(ref_image)
+			print(f"✓ Normalizer fitted to reference")
+
+	# ========================================================================
+	# Ejecutar seg_and_patch con normalizer
+	# ========================================================================
+
 	seg_times, patch_times = seg_and_patch(**directories, **parameters,
 											patch_size = args.patch_size, step_size=args.step_size, 
 											seg = args.seg,  use_default_params=False, save_mask = True, 
 											stitch= args.stitch,
 											patch_level=args.patch_level, patch = args.patch,
-											process_list = process_list, auto_skip=args.no_auto_skip)
+											process_list = process_list, auto_skip=args.no_auto_skip,
+											normalizer=normalizer)
