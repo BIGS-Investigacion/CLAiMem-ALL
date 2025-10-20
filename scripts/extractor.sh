@@ -113,6 +113,7 @@ fi
 
 if [ "$6" -eq 1 ] && [ -n "$7" ]; then
     PATCHES_DIRECTORY=$PATCHES_DIRECTORY"_macenko"
+    FEATURES_DIRECTORY=$FEATURES_DIRECTORY"_macenko"
     EXTRA_ARGS="$EXTRA_ARGS --use_macenko --reference_image $7"
     echo "Using macenko file: $7"
 fi
