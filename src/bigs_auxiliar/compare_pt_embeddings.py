@@ -26,6 +26,26 @@ def load_embeddings(pt_path):
     print(f"   Shape: {embeddings.shape}")
     print(f"   Dtype: {embeddings.dtype}")
     
+    # Validar que es 2D
+    if embeddings.ndim != 2:
+        print(f"   ⚠️  Warning: Expected 2D array, got {embeddings.ndim}D")
+        if embeddings.ndim == 1:
+            # Si es 1D, asumir que es un solo embedding
+            embeddings = embeddings.reshape(1, -1)
+            print(f"   Reshaped to: {embeddings.shape}")
+        elif embeddings.ndim > 2:
+            # Si tiene más dimensiones, aplanar
+            original_shape = embeddings.shape
+            embeddings = embeddings.reshape(embeddings.shape[0], -1)
+            print(f"   Reshaped from {original_shape} to: {embeddings.shape}")
+    
+    # Asegurar que sea formato (N_patches, embedding_dim)
+    # Si tiene más columnas que filas, probablemente está transpuesto
+    if embeddings.shape[1] > embeddings.shape[0] and embeddings.shape[0] < 100:
+        print(f"   ⚠️  Array might be transposed. Transposing...")
+        embeddings = embeddings.T
+        print(f"   New shape: {embeddings.shape}")
+    
     return embeddings
 
 
@@ -33,6 +53,8 @@ def compute_similarity_metrics(emb_original, emb_macenko):
     """Calcular métricas de similitud entre embeddings"""
     
     print(f"\n📊 Computing similarity metrics...")
+    print(f"   Original shape: {emb_original.shape}")
+    print(f"   Macenko shape:  {emb_macenko.shape}")
     
     # Verificar que tienen el mismo número de patches
     if emb_original.shape[0] != emb_macenko.shape[0]:
@@ -44,15 +66,40 @@ def compute_similarity_metrics(emb_original, emb_macenko):
         emb_original = emb_original[:n]
         emb_macenko = emb_macenko[:n]
     
+    # Verificar que tienen las mismas dimensiones
+    if emb_original.shape[1] != emb_macenko.shape[1]:
+        raise ValueError(
+            f"Embedding dimensions don't match!\n"
+            f"   Original: {emb_original.shape[1]} dims\n"
+            f"   Macenko:  {emb_macenko.shape[1]} dims"
+        )
+    
+    n_patches = emb_original.shape[0]
+    n_dims = emb_original.shape[1]
+    
+    print(f"   Comparing {n_patches} patches with {n_dims} dimensions each")
+    
     # Distancia coseno y euclidiana para cada par de patches
     cosine_dists = []
     euclidean_dists = []
     
-    for i in tqdm(range(len(emb_original)), desc="Computing distances"):
-        cos_dist = cosine(emb_original[i], emb_macenko[i])
-        euc_dist = euclidean(emb_original[i], emb_macenko[i])
-        cosine_dists.append(cos_dist)
-        euclidean_dists.append(euc_dist)
+    for i in tqdm(range(n_patches), desc="Computing distances"):
+        try:
+            # Asegurar que son vectores 1D
+            vec1 = emb_original[i].ravel()
+            vec2 = emb_macenko[i].ravel()
+            
+            cos_dist = cosine(vec1, vec2)
+            euc_dist = euclidean(vec1, vec2)
+            
+            # Validar resultados
+            if not np.isnan(cos_dist) and not np.isinf(cos_dist):
+                cosine_dists.append(cos_dist)
+            if not np.isnan(euc_dist) and not np.isinf(euc_dist):
+                euclidean_dists.append(euc_dist)
+        except Exception as e:
+            print(f"\n⚠️  Error computing distance for patch {i}: {e}")
+            continue
     
     # Similitud coseno (1 - distancia)
     cosine_sims = [1 - d for d in cosine_dists]
@@ -60,10 +107,26 @@ def compute_similarity_metrics(emb_original, emb_macenko):
     # Correlación por dimensión
     print("Computing dimension correlations...")
     correlations = []
-    for dim in tqdm(range(emb_original.shape[1]), desc="Correlations"):
-        corr, _ = pearsonr(emb_original[:, dim], emb_macenko[:, dim])
-        if not np.isnan(corr):
-            correlations.append(corr)
+    
+    for dim in tqdm(range(n_dims), desc="Correlations"):
+        try:
+            # Extraer columna (una dimensión específica de todos los patches)
+            vec1 = emb_original[:, dim].ravel()
+            vec2 = emb_macenko[:, dim].ravel()
+            
+            # Verificar que no son constantes
+            if np.std(vec1) > 1e-10 and np.std(vec2) > 1e-10:
+                corr, _ = pearsonr(vec1, vec2)
+                if not np.isnan(corr):
+                    correlations.append(corr)
+        except Exception as e:
+            if dim < 5:  # Solo mostrar los primeros errores
+                print(f"\n⚠️  Error computing correlation for dim {dim}: {e}")
+            continue
+    
+    if len(correlations) == 0:
+        print("⚠️  Warning: No valid correlations computed!")
+        correlations = [0.0]  # Valor por defecto
     
     # Norma L2 (magnitud del vector)
     norm_original = np.linalg.norm(emb_original, axis=1)
@@ -119,6 +182,9 @@ def compute_similarity_metrics(emb_original, emb_macenko):
             'values': norm_macenko
         }
     }
+    
+    print(f"   ✓ Computed {len(cosine_sims)} valid similarity scores")
+    print(f"   ✓ Computed {len(correlations)} valid dimension correlations")
     
     return metrics
 

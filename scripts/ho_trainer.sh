@@ -62,7 +62,7 @@ else
     PATIENT_STRAT=""
 fi
 
-if [ -z "$5" ] || [ "$5" -lt 1 ] || [ "$5" -gt 13 ]; then
+if [ -z "$6" ] || [ "$6" -lt 1 ] || [ "$6" -gt 13 ]; then
     echo "Please provide a valid selection number for technique to test: [1,13]."
     exit 1
 fi
@@ -92,9 +92,9 @@ CURRENT_TEST=$(date +"%s")
 SPLIT_DIR_TEST=.splits/$DATABASE_TEST/ho-test-$CURRENT_TEST
 python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TEST --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TEST --label_dict $LABEL_DICT $PATIENT_STRAT
 
-case "$5" in
+case "$6" in
     1)
-        echo "Parameter 5 is set to 1."
+        echo "Parameter 6 is set to 1."
         EMBED_DIM=1024
         MODEL_NAME=cnn
         EXP_CODE=$MODEL_NAME
@@ -103,7 +103,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     2)
-        echo "Parameter 5 is set to 2."
+        echo "Parameter 6 is set to 2."
         EMBED_DIM=512
         MODEL_NAME=conch
         EXP_CODE=$MODEL_NAME
@@ -112,7 +112,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     3)
-        echo "Parameter 5 is set to 3."
+        echo "Parameter 6 is set to 3."
         EMBED_DIM=768
         MODEL_NAME=ctranspath
         EXP_CODE=$MODEL_NAME
@@ -121,7 +121,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     4)
-        echo "Parameter 5 is set to 4."
+        echo "Parameter 6 is set to 4."
         EMBED_DIM=768
         MODEL_NAME=hibou_b
         EXP_CODE=$MODEL_NAME
@@ -130,7 +130,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     5)
-        echo "Parameter 5 is set to 5."
+        echo "Parameter 6 is set to 5."
         EMBED_DIM=1024
         MODEL_NAME=hibou_l
         EXP_CODE=$MODEL_NAME
@@ -139,7 +139,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     6)
-        echo "Parameter 5 is set to 6."
+        echo "Parameter 6 is set to 6."
         EMBED_DIM=1536
         MODEL_NAME=hoptimus0
         EXP_CODE=$MODEL_NAME
@@ -148,7 +148,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     7)
-        echo "Parameter 5 is set to 7."
+        echo "Parameter 6 is set to 7."
         EMBED_DIM=2048
         MODEL_NAME=musk
         EXP_CODE=$MODEL_NAME
@@ -157,7 +157,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     8)
-        echo "Parameter 5 is set to 8."
+        echo "Parameter 6 is set to 8."
         EMBED_DIM=1024
         MODEL_NAME=phikon
         EXP_CODE=$MODEL_NAME
@@ -166,7 +166,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     9)
-        echo "Parameter 5 is set to 9."
+        echo "Parameter 6 is set to 9."
         EMBED_DIM=1536
         MODEL_NAME=provgigapath
         EXP_CODE=$MODEL_NAME
@@ -175,7 +175,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     10)
-        echo "Parameter 5 is set to 10."
+        echo "Parameter 6 is set to 10."
         EMBED_DIM=2048
         MODEL_NAME=retccl
         EXP_CODE=$MODEL_NAME
@@ -184,7 +184,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     11)
-        echo "Parameter 5 is set to 11."
+        echo "Parameter 6 is set to 11."
         EMBED_DIM=1024
         MODEL_NAME=uni
         EXP_CODE=$MODEL_NAME
@@ -193,7 +193,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     12)
-        echo "Parameter 5 is set to 12."
+        echo "Parameter 6 is set to 12."
         EMBED_DIM=1536
         MODEL_NAME=uni_2
         EXP_CODE=$MODEL_NAME
@@ -202,7 +202,7 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     13)
-        echo "Parameter 5 is set to 13."
+        echo "Parameter 6 is set to 13."
         EMBED_DIM=2560
         MODEL_NAME=virchow
         EXP_CODE=$MODEL_NAME
@@ -211,10 +211,19 @@ case "$5" in
         RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
         ;;
     *)
-        echo "Parameter 5 is out of the valid range. Please provide a number between 1 and 13."
+        echo "Parameter 6 is out of the valid range. Please provide a number between 1 and 13."
         exit 1
         ;;
 esac
+
+if [ -z "$5" ]; then
+    echo "Please provide the fifth parameter as 'YES' or 'NO' to support HER2 virtualization (double dimension)."
+    exit 1
+elif [ "$5" == "YES" ]; then
+    EMBED_DIM=$((EMBED_DIM * 2))
+else
+    EMBED_DIM=$EMBED_DIM
+fi
 
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --reg $REG --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K   --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict $LABEL_DICT 
 
