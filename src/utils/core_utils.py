@@ -5,6 +5,7 @@ import os
 from dataset_modules.dataset_generic import save_splits
 from models.model_mil import MIL_fc, MIL_fc_mc
 from models.model_clam import CLAM_MB, CLAM_SB
+from models.model_clam_enhanced import CLAM_MB_Topological, CLAM_SB_Topological
 from sklearn.preprocessing import label_binarize
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.metrics import auc as calc_auc
@@ -149,9 +150,15 @@ def train(datasets, cur, args):
             instance_loss_fn = nn.CrossEntropyLoss()
         
         if args.model_type =='clam_sb':
-            model = CLAM_SB(**model_dict, instance_loss_fn=instance_loss_fn)
+            if args.topo:
+                model = CLAM_SB_Topological(**model_dict, instance_loss_fn=instance_loss_fn)
+            else:
+                model = CLAM_SB(**model_dict, instance_loss_fn=instance_loss_fn)
         elif args.model_type == 'clam_mb':
-            model = CLAM_MB(**model_dict, instance_loss_fn=instance_loss_fn)
+            if args.topo:
+                model = CLAM_MB_Topological(**model_dict, instance_loss_fn=instance_loss_fn)
+            else:
+                model = CLAM_MB(**model_dict, instance_loss_fn=instance_loss_fn)
         else:
             raise NotImplementedError
     

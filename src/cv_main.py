@@ -104,6 +104,8 @@ parser.add_argument('--inst_loss', type=str, choices=['svm', 'ce', None], defaul
                      help='instance-level clustering loss function (default: None)')
 parser.add_argument('--subtyping', action='store_true', default=False, 
                      help='subtyping problem')
+parser.add_argument('--topo', action='store_true', default=False, 
+                     help='add topological diversity')
 parser.add_argument('--bag_weight', type=float, default=0.7,
                     help='clam: weight coefficient for bag-level loss (default: 0.7)')
 parser.add_argument('--B', type=int, default=8, help='numbr of positive/negative patches to sample for clam')
