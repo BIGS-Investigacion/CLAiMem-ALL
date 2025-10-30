@@ -121,9 +121,10 @@ def train(datasets, cur, args):
         if device.type == 'cuda':
             loss_fn = loss_fn.cuda()
     else:
-        weights = [len(train_split)/(args.n_classes * len(train_split.slide_cls_ids[i])) for i in range(args.n_classes)]
-        weights = torch.tensor(weights, dtype=torch.float32, device=device)
-        loss_fn = nn.CrossEntropyLoss(weight=weights)
+        #weights = [len(train_split)/(args.n_classes * len(train_split.slide_cls_ids[i])) for i in range(args.n_classes)]
+        #weights = torch.tensor(weights, dtype=torch.float32, device=device)
+        #loss_fn = nn.CrossEntropyLoss(weight=weights)
+        loss_fn = nn.CrossEntropyLoss()
     print('Done!')
     
     print('\nInit Model...', end=' ')

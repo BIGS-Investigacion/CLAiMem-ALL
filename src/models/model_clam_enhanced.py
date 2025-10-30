@@ -2,30 +2,68 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-
-from models.model_clam import CLAM_MB, CLAM_SB
+from models.model_clam import CLAM_SB, CLAM_MB
 
 # ============================================================================
-# SAMPLERS TOPOLÓGICOS (módulos independientes)
+# MÓDULOS DE REDUCCIÓN DIMENSIONAL
+# ============================================================================
+
+class DimensionalityReducer(nn.Module):
+    """
+    Reduce dimensionalidad para evitar Efecto de Hughes
+    en cálculos de atención y distancia
+    """
+    def __init__(self, input_dim, output_dim, method='linear'):
+        super().__init__()
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.method = method
+        
+        if method == 'linear':
+            self.projection = nn.Linear(input_dim, output_dim)
+        elif method == 'mlp':
+            self.projection = nn.Sequential(
+                nn.Linear(input_dim, (input_dim + output_dim) // 2),
+                nn.ReLU(),
+                nn.Linear((input_dim + output_dim) // 2, output_dim)
+            )
+        else:
+            raise ValueError(f"Unknown method: {method}")
+    
+    def forward(self, x):
+        """
+        Args:
+            x: [N, input_dim]
+        Returns:
+            x_reduced: [N, output_dim]
+        """
+        return self.projection(x)
+
+
+# ============================================================================
+# SAMPLERS CON REDUCCIÓN DIMENSIONAL
 # ============================================================================
 
 class TopologicalDiversitySampler(nn.Module):
     """
-    Farthest Point Sampling (FPS) con balance attention-diversidad
-    Maximiza distancia topológica en el espacio de embeddings
+    FPS con reducción dimensional para evitar Efecto de Hughes
     """
-    def __init__(self, alpha=0.5):
-        """
-        Args:
-            alpha: balance entre attention (0) y diversidad topológica (1)
-        """
+    def __init__(self, alpha=0.5, input_dim=None, reduced_dim=None):
         super().__init__()
         self.alpha = alpha
+        
+        # Si se especifica reducción dimensional
+        if input_dim is not None and reduced_dim is not None:
+            self.use_reduction = True
+            self.reducer = DimensionalityReducer(input_dim, reduced_dim, method='linear')
+        else:
+            self.use_reduction = False
+            self.reducer = None
     
     def forward(self, features, attention_scores, k):
         """
         Args:
-            features: [N, D] - vectores de características
+            features: [N, D] - vectores originales (alta dimensión)
             attention_scores: [N] - scores de atención
             k: número de patches a seleccionar
         Returns:
@@ -37,8 +75,14 @@ class TopologicalDiversitySampler(nn.Module):
         if k >= N:
             return torch.arange(N, device=device)
         
-        # Normalizar features para distancias euclidianas
-        features_norm = F.normalize(features, p=2, dim=1)
+        # Reducir dimensionalidad si está habilitado
+        if self.use_reduction:
+            features_for_distance = self.reducer(features)
+        else:
+            features_for_distance = features
+        
+        # Normalizar features para distancias
+        features_norm = F.normalize(features_for_distance, p=2, dim=1)
         
         # Normalizar attention scores
         attention_norm = (attention_scores - attention_scores.min()) / \
@@ -47,38 +91,34 @@ class TopologicalDiversitySampler(nn.Module):
         selected_indices = []
         remaining_mask = torch.ones(N, dtype=torch.bool, device=device)
         
-        # Inicializar con el patch de mayor attention
+        # Primer patch: máximo attention
         first_idx = torch.argmax(attention_scores).item()
         selected_indices.append(first_idx)
         remaining_mask[first_idx] = False
         
-        # Distancias mínimas de cada punto al conjunto seleccionado
+        # Distancias mínimas
         min_distances = torch.full((N,), float('inf'), device=device)
         
-        # Iterativamente seleccionar patches
+        # Selección iterativa
         for _ in range(k - 1):
             if not remaining_mask.any():
                 break
             
-            # Actualizar distancias mínimas al último punto agregado
+            # Distancia al último seleccionado
             last_selected_feat = features_norm[selected_indices[-1]].unsqueeze(0)
             remaining_feats = features_norm[remaining_mask]
-            
-            # Distancias euclidianas al último seleccionado
             distances = torch.cdist(remaining_feats, last_selected_feat, p=2).squeeze(1)
             
-            # Actualizar distancias mínimas
             remaining_indices = torch.where(remaining_mask)[0]
             min_distances[remaining_mask] = torch.min(
                 min_distances[remaining_mask], 
                 distances
             )
             
-            # Score combinado: (1-alpha) * attention + alpha * min_distance
+            # Score combinado
             combined_scores = (1 - self.alpha) * attention_norm[remaining_mask] + \
                              self.alpha * min_distances[remaining_mask]
             
-            # Seleccionar el mejor
             best_idx_in_remaining = torch.argmax(combined_scores).item()
             best_idx = remaining_indices[best_idx_in_remaining].item()
             
@@ -90,39 +130,37 @@ class TopologicalDiversitySampler(nn.Module):
 
 class DPPSampler(nn.Module):
     """
-    Determinantal Point Process (DPP) Sampling
-    Maximiza el determinante para obtener diversidad topológica
+    DPP con reducción dimensional
     """
-    def __init__(self, lambda_reg=0.01):
+    def __init__(self, lambda_reg=0.01, input_dim=None, reduced_dim=None):
         super().__init__()
         self.lambda_reg = lambda_reg
+        
+        if input_dim is not None and reduced_dim is not None:
+            self.use_reduction = True
+            self.reducer = DimensionalityReducer(input_dim, reduced_dim, method='linear')
+        else:
+            self.use_reduction = False
+            self.reducer = None
     
     def compute_kernel_matrix(self, features, attention_scores):
-        """
-        Construye matriz de kernel L = q_i * q_j * S_ij
-        """
         N = features.shape[0]
         device = features.device
         
-        # Normalizar features
-        features_norm = F.normalize(features, p=2, dim=1)
+        # Reducir dimensionalidad
+        if self.use_reduction:
+            features = self.reducer(features)
         
-        # Matriz de similitud (cosine similarity)
+        features_norm = F.normalize(features, p=2, dim=1)
         S = torch.mm(features_norm, features_norm.t())
         
-        # Quality scores (attention)
         q = attention_scores.unsqueeze(1)
-        
-        # Kernel matrix
         L = torch.sqrt(torch.mm(q, q.t())) * S
         L = L + self.lambda_reg * torch.eye(N, device=device)
         
         return L
     
     def greedy_map_inference(self, L, k):
-        """
-        Greedy MAP inference: maximiza log det(L_Y)
-        """
         N = L.shape[0]
         device = L.device
         
@@ -160,11 +198,17 @@ class DPPSampler(nn.Module):
 
 class MaxMinSampler(nn.Module):
     """
-    Max-Min distance sampling
-    En cada paso selecciona el patch más lejano del conjunto
+    Max-Min con reducción dimensional
     """
-    def __init__(self):
+    def __init__(self, input_dim=None, reduced_dim=None):
         super().__init__()
+        
+        if input_dim is not None and reduced_dim is not None:
+            self.use_reduction = True
+            self.reducer = DimensionalityReducer(input_dim, reduced_dim, method='linear')
+        else:
+            self.use_reduction = False
+            self.reducer = None
     
     def forward(self, features, attention_scores, k):
         device = features.device
@@ -173,19 +217,20 @@ class MaxMinSampler(nn.Module):
         if k >= N:
             return torch.arange(N, device=device)
         
+        # Reducir dimensionalidad
+        if self.use_reduction:
+            features = self.reducer(features)
+        
         features_norm = F.normalize(features, p=2, dim=1)
         
-        # Inicializar con máximo attention
         selected_indices = []
         first_idx = torch.argmax(attention_scores).item()
         selected_indices.append(first_idx)
         
-        # Distancias mínimas
         selected_feat = features_norm[first_idx].unsqueeze(0)
         min_distances = torch.cdist(features_norm, selected_feat, p=2).squeeze(1)
         min_distances[first_idx] = -float('inf')
         
-        # Seleccionar patches más lejanos
         for _ in range(k - 1):
             farthest_idx = torch.argmax(min_distances).item()
             selected_indices.append(farthest_idx)
@@ -199,48 +244,136 @@ class MaxMinSampler(nn.Module):
 
 
 # ============================================================================
-# EXTENSIONES DE CLAM_SB CON DIVERSIDAD TOPOLÓGICA
+# CLAM CON ATENCIÓN EN ESPACIO REDUCIDO
 # ============================================================================
 
-class CLAM_SB_Topological(CLAM_SB):
+class CLAM_SB_ReducedSpace(CLAM_SB):
     """
-    Extensión de CLAM_SB que solo modifica el muestreo de patches
-    para incluir diversidad topológica en el espacio de embeddings
+    CLAM_SB que calcula atención y diversidad en espacio reducido
+    pero agrega features originales para clasificación
     """
-    def __init__(self, gate=True, size_arg="small", dropout=0., k_sample=8, 
-                 n_classes=2, instance_loss_fn=nn.CrossEntropyLoss(), 
+    def __init__(self, gate=True, size_arg="small", dropout=0., k_sample=8,
+                 n_classes=2, instance_loss_fn=nn.CrossEntropyLoss(),
                  subtyping=False, embed_dim=1024,
-                 # Nuevos parámetros
-                 diversity_method='fps',  # 'fps', 'dpp', 'maxmin'
-                 diversity_alpha=0.5):     # balance attention-diversity (solo para fps)
+                 # Parámetros de reducción dimensional
+                 reduced_dim=256,  # Dimensión reducida para atención/distancia
+                 diversity_method='fps',
+                 diversity_alpha=0.5):
         
-        # Inicializar CLAM_SB original
-        super(CLAM_SB_Topological, self).__init__(
-            gate=gate, 
-            size_arg=size_arg, 
-            dropout=dropout, 
+        # Guardar dimensiones
+        self.original_embed_dim = embed_dim
+        self.reduced_dim = reduced_dim
+        
+        # Inicializar CLAM_SB con embed_dim ORIGINAL
+        super(CLAM_SB_ReducedSpace, self).__init__(
+            gate=gate,
+            size_arg=size_arg,
+            dropout=dropout,
             k_sample=k_sample,
-            n_classes=n_classes, 
-            instance_loss_fn=instance_loss_fn, 
-            subtyping=subtyping, 
-            embed_dim=embed_dim
+            n_classes=n_classes,
+            instance_loss_fn=instance_loss_fn,
+            subtyping=subtyping,
+            embed_dim=embed_dim  # Usa dimensión original para agregación
         )
         
-        # Agregar sampler topológico
+        # Reductor dimensional para atención
+        self.attention_reducer = DimensionalityReducer(
+            embed_dim, reduced_dim, method='linear'
+        )
+        
+        # Sampler topológico con reducción
         if diversity_method == 'fps':
-            self.topological_sampler = TopologicalDiversitySampler(alpha=diversity_alpha)
+            self.topological_sampler = TopologicalDiversitySampler(
+                alpha=diversity_alpha,
+                input_dim=embed_dim,
+                reduced_dim=reduced_dim
+            )
         elif diversity_method == 'dpp':
-            self.topological_sampler = DPPSampler(lambda_reg=0.01)
+            self.topological_sampler = DPPSampler(
+                lambda_reg=0.01,
+                input_dim=embed_dim,
+                reduced_dim=reduced_dim
+            )
         elif diversity_method == 'maxmin':
-            self.topological_sampler = MaxMinSampler()
+            self.topological_sampler = MaxMinSampler(
+                input_dim=embed_dim,
+                reduced_dim=reduced_dim
+            )
         else:
             raise ValueError(f"Unknown diversity_method: {diversity_method}")
         
         self.diversity_method = diversity_method
     
+    def forward(self, h, label=None, instance_eval=False, return_features=False, attention_only=False):
+        """
+        Forward modificado:
+        1. Reducir dimensión para calcular atención
+        2. Usar embeddings originales para agregación
+        """
+        # Reducir dimensionalidad para calcular atención
+        h_reduced = self.attention_reducer(h)  # [N, reduced_dim]
+        
+        # Calcular atención en espacio reducido
+        A, _ = self.attention_net(h_reduced)  # NxK
+        A = torch.transpose(A, 1, 0)  # KxN
+        
+        if attention_only:
+            return A
+        
+        A_raw = A
+        A = F.softmax(A, dim=1)  # softmax over N
+
+        if instance_eval:
+            total_inst_loss = 0.0
+            all_preds = []
+            all_targets = []
+            inst_labels = F.one_hot(label, num_classes=self.n_classes).squeeze()
+            
+            for i in range(len(self.instance_classifiers)):
+                inst_label = inst_labels[i].item()
+                classifier = self.instance_classifiers[i]
+                
+                if inst_label == 1:  # in-the-class
+                    instance_loss, preds, targets = self.inst_eval(A, h, classifier)
+                    all_preds.extend(preds.cpu().numpy())
+                    all_targets.extend(targets.cpu().numpy())
+                else:  # out-of-the-class
+                    if self.subtyping:
+                        instance_loss, preds, targets = self.inst_eval_out(A, h, classifier)
+                        all_preds.extend(preds.cpu().numpy())
+                        all_targets.extend(targets.cpu().numpy())
+                    else:
+                        continue
+                
+                total_inst_loss += instance_loss
+
+            if self.subtyping:
+                total_inst_loss /= len(self.instance_classifiers)
+        
+        # Agregación con features ORIGINALES
+        M = torch.mm(A, h)  # Usa h original, no h_reduced
+        logits = self.classifiers(M)
+        Y_hat = torch.topk(logits, 1, dim=1)[1]
+        Y_prob = F.softmax(logits, dim=1)
+        
+        if instance_eval:
+            results_dict = {
+                'instance_loss': total_inst_loss,
+                'inst_labels': np.array(all_targets),
+                'inst_preds': np.array(all_preds)
+            }
+        else:
+            results_dict = {}
+        
+        if return_features:
+            results_dict.update({'features': M})
+        
+        return logits, Y_prob, Y_hat, A_raw, results_dict
+    
     def inst_eval(self, A, h, classifier):
         """
-        Sobrescribe inst_eval para usar diversidad topológica
+        Evaluación de instancia usando diversidad topológica
+        h son las features ORIGINALES (no reducidas)
         """
         device = h.device
         if len(A.shape) == 1:
@@ -248,20 +381,18 @@ class CLAM_SB_Topological(CLAM_SB):
         
         A_flat = A.view(-1)
         
-        # Seleccionar top patches con diversidad topológica
+        # Sampler usa h original pero calcula distancias en espacio reducido internamente
         top_p_ids = self.topological_sampler(h, A_flat, self.k_sample)
-        top_p = torch.index_select(h, dim=0, index=top_p_ids)
+        top_p = torch.index_select(h, dim=0, index=top_p_ids)  # Features originales
         
-        # Seleccionar patches negativos (invertir scores)
         top_n_ids = self.topological_sampler(h, -A_flat, self.k_sample)
         top_n = torch.index_select(h, dim=0, index=top_n_ids)
         
-        # Resto igual que CLAM_SB original
         p_targets = self.create_positive_targets(self.k_sample, device)
         n_targets = self.create_negative_targets(self.k_sample, device)
         
         all_targets = torch.cat([p_targets, n_targets], dim=0)
-        all_instances = torch.cat([top_p, top_n], dim=0)
+        all_instances = torch.cat([top_p, top_n], dim=0)  # Features originales
         logits = classifier(all_instances)
         all_preds = torch.topk(logits, 1, dim=1)[1].squeeze(1)
         instance_loss = self.instance_loss_fn(logits, all_targets)
@@ -269,16 +400,12 @@ class CLAM_SB_Topological(CLAM_SB):
         return instance_loss, all_preds, all_targets
     
     def inst_eval_out(self, A, h, classifier):
-        """
-        Sobrescribe inst_eval_out para usar diversidad topológica
-        """
         device = h.device
         if len(A.shape) == 1:
             A = A.view(1, -1)
         
         A_flat = A.view(-1)
         
-        # Seleccionar con diversidad topológica
         top_p_ids = self.topological_sampler(h, A_flat, self.k_sample)
         top_p = torch.index_select(h, dim=0, index=top_p_ids)
         
@@ -290,52 +417,131 @@ class CLAM_SB_Topological(CLAM_SB):
         return instance_loss, p_preds, p_targets
 
 
-class CLAM_MB_Topological(CLAM_MB):
+class CLAM_MB_ReducedSpace(CLAM_MB):
     """
-    Extensión de CLAM_MB con diversidad topológica
+    CLAM_MB con atención y diversidad en espacio reducido
     """
     def __init__(self, gate=True, size_arg="small", dropout=0., k_sample=8,
-                 n_classes=2, instance_loss_fn=nn.CrossEntropyLoss(), 
+                 n_classes=2, instance_loss_fn=nn.CrossEntropyLoss(),
                  subtyping=False, embed_dim=1024,
-                 # Nuevos parámetros
+                 reduced_dim=256,
                  diversity_method='fps',
                  diversity_alpha=0.5):
         
-        # Inicializar CLAM_MB original
-        super(CLAM_MB_Topological, self).__init__(
-            gate=gate, 
-            size_arg=size_arg, 
-            dropout=dropout, 
+        self.original_embed_dim = embed_dim
+        self.reduced_dim = reduced_dim
+        
+        super(CLAM_MB_ReducedSpace, self).__init__(
+            gate=gate,
+            size_arg=size_arg,
+            dropout=dropout,
             k_sample=k_sample,
-            n_classes=n_classes, 
-            instance_loss_fn=instance_loss_fn, 
-            subtyping=subtyping, 
+            n_classes=n_classes,
+            instance_loss_fn=instance_loss_fn,
+            subtyping=subtyping,
             embed_dim=embed_dim
         )
         
-        # Agregar sampler topológico
+        # Reductor dimensional
+        self.attention_reducer = DimensionalityReducer(
+            embed_dim, reduced_dim, method='linear'
+        )
+        
+        # Sampler topológico
         if diversity_method == 'fps':
-            self.topological_sampler = TopologicalDiversitySampler(alpha=diversity_alpha)
+            self.topological_sampler = TopologicalDiversitySampler(
+                alpha=diversity_alpha,
+                input_dim=embed_dim,
+                reduced_dim=reduced_dim
+            )
         elif diversity_method == 'dpp':
-            self.topological_sampler = DPPSampler(lambda_reg=0.01)
+            self.topological_sampler = DPPSampler(
+                lambda_reg=0.01,
+                input_dim=embed_dim,
+                reduced_dim=reduced_dim
+            )
         elif diversity_method == 'maxmin':
-            self.topological_sampler = MaxMinSampler()
+            self.topological_sampler = MaxMinSampler(
+                input_dim=embed_dim,
+                reduced_dim=reduced_dim
+            )
         else:
             raise ValueError(f"Unknown diversity_method: {diversity_method}")
         
         self.diversity_method = diversity_method
     
+    def forward(self, h, label=None, instance_eval=False, return_features=False, attention_only=False):
+        # Reducir para atención
+        h_reduced = self.attention_reducer(h)
+        
+        # Atención en espacio reducido
+        A, _ = self.attention_net(h_reduced)
+        A = torch.transpose(A, 1, 0)
+        
+        if attention_only:
+            return A
+        
+        A_raw = A
+        A = F.softmax(A, dim=1)
+
+        if instance_eval:
+            total_inst_loss = 0.0
+            all_preds = []
+            all_targets = []
+            inst_labels = F.one_hot(label, num_classes=self.n_classes).squeeze()
+            
+            for i in range(len(self.instance_classifiers)):
+                inst_label = inst_labels[i].item()
+                classifier = self.instance_classifiers[i]
+                
+                if inst_label == 1:
+                    instance_loss, preds, targets = self.inst_eval(A[i], h, classifier)
+                    all_preds.extend(preds.cpu().numpy())
+                    all_targets.extend(targets.cpu().numpy())
+                else:
+                    if self.subtyping:
+                        instance_loss, preds, targets = self.inst_eval_out(A[i], h, classifier)
+                        all_preds.extend(preds.cpu().numpy())
+                        all_targets.extend(targets.cpu().numpy())
+                    else:
+                        continue
+                
+                total_inst_loss += instance_loss
+
+            if self.subtyping:
+                total_inst_loss /= len(self.instance_classifiers)
+
+        # Agregación con features originales
+        M = torch.mm(A, h)
+
+        logits = torch.empty(1, self.n_classes).float().to(M.device)
+        for c in range(self.n_classes):
+            logits[0, c] = self.classifiers[c](M[c])
+
+        Y_hat = torch.topk(logits, 1, dim=1)[1]
+        Y_prob = F.softmax(logits, dim=1)
+        
+        if instance_eval:
+            results_dict = {
+                'instance_loss': total_inst_loss,
+                'inst_labels': np.array(all_targets),
+                'inst_preds': np.array(all_preds)
+            }
+        else:
+            results_dict = {}
+        
+        if return_features:
+            results_dict.update({'features': M})
+        
+        return logits, Y_prob, Y_hat, A_raw, results_dict
+    
     def inst_eval(self, A, h, classifier):
-        """
-        Sobrescribe inst_eval para CLAM_MB con diversidad topológica
-        """
         device = h.device
         if len(A.shape) == 1:
             A = A.view(1, -1)
         
         A_flat = A.view(-1)
         
-        # Seleccionar con diversidad topológica
         top_p_ids = self.topological_sampler(h, A_flat, self.k_sample)
         top_p = torch.index_select(h, dim=0, index=top_p_ids)
         
@@ -354,9 +560,6 @@ class CLAM_MB_Topological(CLAM_MB):
         return instance_loss, all_preds, all_targets
     
     def inst_eval_out(self, A, h, classifier):
-        """
-        Sobrescribe inst_eval_out para CLAM_MB con diversidad topológica
-        """
         device = h.device
         if len(A.shape) == 1:
             A = A.view(1, -1)
