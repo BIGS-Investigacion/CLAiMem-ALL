@@ -247,7 +247,7 @@ class MaxMinSampler(nn.Module):
 # CLAM CON ATENCIÓN EN ESPACIO REDUCIDO
 # ============================================================================
 
-class CLAM_SB_ReducedSpace(CLAM_SB):
+class CLAM_SB_Enhanced(CLAM_SB):
     """
     CLAM_SB que calcula atención y diversidad en espacio reducido
     pero agrega features originales para clasificación
@@ -417,7 +417,7 @@ class CLAM_SB_ReducedSpace(CLAM_SB):
         return instance_loss, p_preds, p_targets
 
 
-class CLAM_MB_ReducedSpace(CLAM_MB):
+class CLAM_MB_Enhanced(CLAM_MB):
     """
     CLAM_MB con atención y diversidad en espacio reducido
     """
