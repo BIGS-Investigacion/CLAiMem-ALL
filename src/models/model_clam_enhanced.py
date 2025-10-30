@@ -265,7 +265,7 @@ class CLAM_SB_Enhanced(CLAM_SB):
         self.reduced_dim = reduced_dim
         
         # Inicializar CLAM_SB con embed_dim ORIGINAL
-        super(CLAM_SB_ReducedSpace, self).__init__(
+        super(CLAM_SB_Enhanced, self).__init__(
             gate=gate,
             size_arg=size_arg,
             dropout=dropout,
@@ -431,7 +431,7 @@ class CLAM_MB_Enhanced(CLAM_MB):
         self.original_embed_dim = embed_dim
         self.reduced_dim = reduced_dim
         
-        super(CLAM_MB_ReducedSpace, self).__init__(
+        super(CLAM_MB_Enhanced, self).__init__(
             gate=gate,
             size_arg=size_arg,
             dropout=dropout,
