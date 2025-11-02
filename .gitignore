@@ -14,3 +14,4 @@ runs*/*
 experiments/*
 data/samples/*
 scripts/custom/*
+stain_analysis/*
