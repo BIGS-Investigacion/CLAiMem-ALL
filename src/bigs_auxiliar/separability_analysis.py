@@ -1,3 +1,4 @@
+import argparse
 import h5py
 import numpy as np
 import pandas as pd
@@ -10,10 +11,38 @@ from tqdm import tqdm
 import os
 
 # ============================================================================
-# CONFIGURACIÓN
+# ARGUMENTOS DE LÍNEA DE COMANDOS
 # ============================================================================
-TCGA_H5_DIR = ".features_20x/tcga/features_virchow/h5_files"
-CPTAC_H5_DIR = ".features_20x/cptac/features_virchow/h5_files"
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Feature space separability analysis across cohorts'
+    )
+    
+    # Directorios H5
+    parser.add_argument(
+        '--tcga_h5_dir',
+        type=str,
+        required=True,
+        help='Path to TCGA H5 files directory'
+    )
+    parser.add_argument(
+        '--cptac_h5_dir',
+        type=str,
+        required=True,
+        help='Path to CPTAC H5 files directory'
+    )
+
+    
+    return parser.parse_args()
+
+# ============================================================================
+# CARGAR CONFIGURACIÓN
+# ============================================================================
+args = parse_args()
+
+TCGA_H5_DIR = args.tcga_h5_dir
+CPTAC_H5_DIR = args.cptac_h5_dir
+
 
 # CSVs por tarea
 TCGA_LABELS = {
