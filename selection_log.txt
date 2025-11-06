@@ -1,0 +1,17 @@
+Processing label_negative_pred_0...
+Traceback (most recent call last):
+  File "/media/jorge/investigacion/software/CLAiMemAll/select_representative_images.py", line 10, in <module>
+    from PIL import Image
+ModuleNotFoundError: No module named 'PIL'
+
+================================
+
+Processing label_positive_pred_1...
+Traceback (most recent call last):
+  File "/media/jorge/investigacion/software/CLAiMemAll/select_representative_images.py", line 10, in <module>
+    from PIL import Image
+ModuleNotFoundError: No module named 'PIL'
+
+Done! Results saved to:
+  - selected_images_er_label_0.txt
+  - selected_images_er_label_1.txt

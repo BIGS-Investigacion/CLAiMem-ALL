@@ -3,6 +3,9 @@ from functools import partial
 import timm
 
 from models.ctran import ctranspath
+from models.mils.model_clam import CLAM_MB, CLAM_SB
+from models.mils.model_clam_enhanced import CLAM_MB_Enhanced, CLAM_SB_Enhanced
+from models.mils.model_mil import MIL_fc, MIL_fc_mc
 from models.musk import MUSKWrapper
 from models.automodel_wrapper import AutoModelWrapper
 from models.retccl import resnet50
@@ -184,3 +187,53 @@ def get_encoder(model_name, target_img_size=224):
         raise NotImplementedError('model {} not implemented'.format(model_name))
 
     return model, img_transforms
+
+
+def build_mil_model(model_type, model_dict, n_classes = 2):
+    if model_type =='clam_sb':
+        model = CLAM_SB(**model_dict)
+    elif model_type =='clam_mb':
+        model = CLAM_MB(**model_dict)
+    else: # args.model_type == 'mil'
+        if n_classes > 2:
+            model = MIL_fc_mc(**model_dict)
+        else:
+            model = MIL_fc(**model_dict)
+    return model
+
+def build_mil_model_2(args, model_dict, device):
+    if args.model_type in ['clam_sb', 'clam_mb']:
+        if args.subtyping:
+            model_dict.update({'subtyping': True})
+        
+        if args.B > 0:
+            model_dict.update({'k_sample': args.B})
+        
+        if args.inst_loss == 'svm':
+            from topk.svm import SmoothTop1SVM
+            instance_loss_fn = SmoothTop1SVM(n_classes = 2)
+            if device.type == 'cuda':
+                instance_loss_fn = instance_loss_fn.cuda()
+        else:
+            instance_loss_fn = nn.CrossEntropyLoss()
+        
+        if args.model_type =='clam_sb':
+            if args.topo:
+                model = CLAM_SB_Enhanced(**model_dict, instance_loss_fn=instance_loss_fn)
+            else:
+                model = CLAM_SB(**model_dict, instance_loss_fn=instance_loss_fn)
+        elif args.model_type == 'clam_mb':
+            if args.topo:
+                model = CLAM_MB_Enhanced(**model_dict, instance_loss_fn=instance_loss_fn)
+            else:
+                model = CLAM_MB(**model_dict, instance_loss_fn=instance_loss_fn)
+        else:
+            raise NotImplementedError
+    
+    else: # args.model_type == 'mil'
+        if args.n_classes > 2:
+            model = MIL_fc_mc(**model_dict)
+        else:
+            model = MIL_fc(**model_dict)
+
+    return model

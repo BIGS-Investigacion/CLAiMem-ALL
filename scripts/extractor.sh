@@ -3,9 +3,9 @@
 DATABASE=$1
 DATA_DIRECTORY=$2
 CSV_FILE_NAME=$3
-PATCHES_DIRECTORY=.patches_40x/$DATABASE
-PATCH_SIZE=512 # TO BE FIXED: Should be 128 if 10x, 256 if 20x, 512 if 40x...
-FEATURES_BASE=.features_40x
+PATCHES_DIRECTORY=.patches_20x/$DATABASE
+PATCH_SIZE=256 # TO BE FIXED: Should be 128 if 10x, 256 if 20x, 512 if 40x...
+FEATURES_BASE=.features_20x
 CUDA_DEV=0
 SLIDE_EXT=.svs
 
@@ -118,8 +118,10 @@ if [ "$6" -eq 1 ] && [ -n "$7" ]; then
     echo "Using macenko file: $7"
 fi
 
-echo $EXTRA_ARGS
 
 if [ "$4" -gt 0 ]; then
     CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/extract_features_fp.py --data_h5_dir $PATCHES_DIRECTORY --data_slide_dir $DATA_DIRECTORY --csv_path $CSV_FILE_NAME --feat_dir $FEATURES_DIRECTORY --batch_size $BATCH_SIZE --slide_ext $SLIDE_EXT --model_name $MODEL_NAME $EXTRA_ARGS
 fi
+
+echo $EXTRA_ARGS
+echo $DATA_DIRECTORY

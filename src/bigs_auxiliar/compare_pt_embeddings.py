@@ -46,6 +46,14 @@ def load_embeddings(pt_path):
         embeddings = embeddings.T
         print(f"   New shape: {embeddings.shape}")
     
+    # Eliminar filas con NaN o infinitos
+    nan_mask = np.isnan(embeddings).any(axis=1) | np.isinf(embeddings).any(axis=1)
+    n_invalid = np.sum(nan_mask)
+    if n_invalid > 0:
+        print(f"   ⚠️  Removing {n_invalid} rows with NaN/Inf values")
+        embeddings = embeddings[~nan_mask]
+        print(f"   New shape after cleaning: {embeddings.shape}")
+    
     return embeddings
 
 
