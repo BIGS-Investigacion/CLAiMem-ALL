@@ -3,7 +3,10 @@ from functools import partial
 import timm
 
 from models.ctran import ctranspath
-from models.musk import MUSKWrapper
+try:
+    from models.musk import MUSKWrapper
+except ImportError:
+    MUSKWrapper = None
 from models.automodel_wrapper import AutoModelWrapper
 from models.retccl import resnet50
 from models.virchow import VirchowWrapper
@@ -13,7 +16,11 @@ from .timm_wrapper import TimmCNNEncoder
 
 from timm_1_0_14 import timm as timm1014
 
-from transformers import AutoImageProcessor, AutoModel
+try:
+    from transformers import AutoImageProcessor, AutoModel
+except ImportError:
+    AutoImageProcessor = None
+    AutoModel = None
 
 import torch
 import torch.nn as nn
