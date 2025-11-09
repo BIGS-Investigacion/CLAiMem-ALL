@@ -91,8 +91,12 @@ class TransMIL(nn.Module):
         h = self.norm(h)[:,0]
 
         #---->predict
-        logits = self._fc2(h) #[B, n_classes]}
-        return logits
+        logits = self._fc2(h) #[B, n_classes]
+        Y_hat = torch.topk(logits, 1, dim=1)[1]
+        Y_prob = F.softmax(logits, dim=1)
+        results_dict = {}
+
+        return logits, Y_prob, Y_hat, None, results_dict
 
 if __name__ == "__main__":
     model = TransMIL()

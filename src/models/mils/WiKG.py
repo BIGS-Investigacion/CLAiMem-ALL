@@ -111,7 +111,14 @@ class WiKG(nn.Module):
         super().__init__()
         self.model = WiKG_(dim_in=in_dim, dim_hidden=hidden_dim, n_classes=n_classes, agg_type='bi-interaction', dropout=0.3, pool='attn')
     def forward(self, x):
-        return self.model(x)
+        logits = self.model(x)
+        # Ensure logits has batch dimension
+        if len(logits.shape) == 1:
+            logits = logits.unsqueeze(0)
+        Y_hat = torch.topk(logits, 1, dim=1)[1]
+        Y_prob = F.softmax(logits, dim=1)
+        results_dict = {}
+        return logits, Y_prob, Y_hat, None, results_dict
 if __name__ == "__main__":
     data = torch.randn((1, 10000, 512)).cuda()
     model = WiKG(n_classes = 2, in_dim=512, hidden_dim=512).cuda()

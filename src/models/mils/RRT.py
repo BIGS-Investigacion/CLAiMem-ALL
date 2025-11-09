@@ -5,6 +5,7 @@
 # --all_shortcut --crmsa_k=1 --input_dim=512 --seed=2021
 from models.mils.rrt_modules import rrt
 import torch.nn as nn
+import torch.nn.functional as F
 import torch
 model_params = {
     'input_dim': 512,
@@ -50,7 +51,10 @@ class RRT(nn.Module):
     def forward(self, x):
         x = self._fc1(x)
         logits = self.rrt(x)
-        return logits
+        Y_hat = torch.topk(logits, 1, dim=1)[1]
+        Y_prob = F.softmax(logits, dim=1)
+        results_dict = {}
+        return logits, Y_prob, Y_hat, None, results_dict
 if __name__ == '__main__':
     model = RRT()
     x = torch.randn((1,1000,512))

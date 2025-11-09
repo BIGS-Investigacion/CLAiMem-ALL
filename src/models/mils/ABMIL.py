@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.nn.functional as F
 import torch
 
 
@@ -28,7 +29,10 @@ class ABMIL(nn.Module):
         x = torch.bmm(A, x).squeeze(dim=1)
         x = self.dropout(x)
         logits = self.classifier(x)
-        return logits
+        Y_hat = torch.topk(logits, 1, dim=1)[1]
+        Y_prob = F.softmax(logits, dim=1)
+        results_dict = {}
+        return logits, Y_prob, Y_hat, None, results_dict
 if __name__ == '__main__':
     model = ABMIL()
     data = torch.rand((1, 1000, 512))
