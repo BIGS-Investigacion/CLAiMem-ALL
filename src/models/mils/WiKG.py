@@ -51,6 +51,11 @@ class WiKG_(nn.Module):
             x = x["feature"]
         except:
             x = x
+
+        # Handle both (N, D) and (B, N, D) inputs
+        if len(x.shape) == 2:
+            x = x.unsqueeze(0)  # Add batch dimension: (N, D) -> (1, N, D)
+
         x = self._fc1(x)    # [B,N,C]
 
         # B, N, C = x.shape

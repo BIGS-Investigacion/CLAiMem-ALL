@@ -134,7 +134,7 @@ class InnerAttention(nn.Module):
         return x
 
     def extra_repr(self) -> str:
-        return f'dim={self.dim}, region_size={self.region_size}, num_heads={self.num_heads}'
+        return f'dim={self.dim}, num_heads={self.num_heads}'
 
     def flops(self, N):
         # calculate flops for 1 region with token length of N

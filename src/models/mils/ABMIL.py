@@ -20,6 +20,10 @@ class ABMIL(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.is_norm = is_norm
     def forward(self, x):
+        # Handle both (N, D) and (B, N, D) inputs
+        if len(x.shape) == 2:
+            x = x.unsqueeze(0)  # Add batch dimension: (N, D) -> (1, N, D)
+
         x = self._fc1(x)
         A_U = self.attention_U(x)
         A_V = self.attention_V(x)
@@ -29,6 +33,11 @@ class ABMIL(nn.Module):
         x = torch.bmm(A, x).squeeze(dim=1)
         x = self.dropout(x)
         logits = self.classifier(x)
+
+        # Ensure logits has batch dimension
+        if len(logits.shape) == 1:
+            logits = logits.unsqueeze(0)
+
         Y_hat = torch.topk(logits, 1, dim=1)[1]
         Y_prob = F.softmax(logits, dim=1)
         results_dict = {}
