@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from models.model_clam import CLAM_SB, CLAM_MB
+from models.mils.model_clam import CLAM_SB, CLAM_MB
 
 # ============================================================================
 # MÓDULOS DE REDUCCIÓN DIMENSIONAL

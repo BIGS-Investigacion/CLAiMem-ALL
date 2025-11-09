@@ -12,7 +12,7 @@ import pandas as pd
 from utils.utils import *
 from math import floor
 from utils.eval_utils import initiate_model as initiate_model
-from models.model_clam import CLAM_MB, CLAM_SB
+from models.mils.model_clam import CLAM_MB, CLAM_SB
 from models import get_encoder
 from types import SimpleNamespace
 from collections import namedtuple
