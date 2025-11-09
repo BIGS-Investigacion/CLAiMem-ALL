@@ -57,8 +57,12 @@ class TransMIL(nn.Module):
 
 
     def forward(self, h):
+        # Handle both (N, D) and (B, N, D) inputs
+        if len(h.shape) == 2:
+            h = h.unsqueeze(0)  # Add batch dimension: (N, D) -> (1, N, D)
+
         h = self._fc1(h) #[B, n, 512]
-        
+
         #---->pad
         H = h.shape[1]
         _H, _W = int(np.ceil(np.sqrt(H))), int(np.ceil(np.sqrt(H)))
@@ -67,7 +71,7 @@ class TransMIL(nn.Module):
 
         #---->cls_token
         B = h.shape[0]
-        cls_tokens = self.cls_token.expand(B, -1, -1).cuda()
+        cls_tokens = self.cls_token.expand(B, -1, -1).to(h.device)
         h = torch.cat((cls_tokens, h), dim=1)
 
         #---->Translayer x1
