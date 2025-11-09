@@ -3,7 +3,7 @@
 # --dataset_root=$DATASET_PATH --model_path=$OUTPUT_PATH --cv_fold=5 \
 # --model=rrtmil --pool=attn --n_trans_layers=2 --da_act=tanh --title=brca_plip_rrtmil \
 # --all_shortcut --crmsa_k=1 --input_dim=512 --seed=2021
-from mils.rrt_modules import rrt
+from models.mils.rrt_modules import rrt
 import torch.nn as nn
 import torch
 model_params = {
