@@ -87,7 +87,7 @@ parser.add_argument('--opt', type=str, choices = ['adam', 'sgd'], default='adam'
 parser.add_argument('--drop_out', type=float, default=0.25, help='dropout')
 parser.add_argument('--bag_loss', type=str, choices=['svm', 'ce'], default='ce',
                      help='slide-level classification loss function (default: ce)')
-parser.add_argument('--model_type', type=str, choices=['clam_sb', 'clam_mb', 'mil'], default='clam_sb', 
+parser.add_argument('--model_type', type=str, choices=['clam_sb', 'clam_mb', 'mil', 'abmil', 'rrt', 'transmil', 'wikg'], default='clam_sb',
                     help='type of model (default: clam_sb, clam w/ single attention branch)')
 parser.add_argument('--exp_code', type=str, help='experiment code for saving results')
 parser.add_argument('--weighted_sample', action='store_true', default=False, help='enable weighted sampling')
@@ -109,6 +109,9 @@ parser.add_argument('--topo', action='store_true', default=False,
 parser.add_argument('--bag_weight', type=float, default=0.7,
                     help='clam: weight coefficient for bag-level loss (default: 0.7)')
 parser.add_argument('--B', type=int, default=8, help='numbr of positive/negative patches to sample for clam')
+### MIL techniques options (applies to abmil, rrt, transmil, wikg)
+parser.add_argument('--hidden_dim', type=int, default=512, help='hidden dimension for MIL techniques (default: 512)')
+parser.add_argument('--abmil_is_norm', action='store_true', default=True, help='abmil: normalize attention weights (default: True)')
 
 
 args = parser.parse_args()

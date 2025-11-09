@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from models.builder import build_mil_model, build_mil_model_2
+from models.builder import build_mil_model
 from utils.utils import *
 import os
 from dataset_modules.dataset_generic import save_splits
@@ -134,7 +134,7 @@ def train(datasets, cur, args):
         model_dict.update({"size_arg": args.model_size})
     
     
-    model = build_mil_model_2(args.model_type, model_dict, args.n_classes, device)
+    model = build_mil_model(args, model_dict, device)
     
     _ = model.to(device)
     print('Done!')

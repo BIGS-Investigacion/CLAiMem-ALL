@@ -6,6 +6,10 @@ from models.ctran import ctranspath
 from models.mils.model_clam import CLAM_MB, CLAM_SB
 from models.mils.model_clam_enhanced import CLAM_MB_Enhanced, CLAM_SB_Enhanced
 from models.mils.model_mil import MIL_fc, MIL_fc_mc
+from models.mils.ABMIL import ABMIL
+from models.mils.RRT import RRT
+from models.mils.TransMIL import TransMIL
+from models.mils.WiKG import WiKG
 from models.musk import MUSKWrapper
 from models.automodel_wrapper import AutoModelWrapper
 from models.retccl import resnet50
@@ -189,35 +193,51 @@ def get_encoder(model_name, target_img_size=224):
     return model, img_transforms
 
 
-def build_mil_model(model_type, model_dict, n_classes = 2):
-    if model_type =='clam_sb':
-        model = CLAM_SB(**model_dict)
-    elif model_type =='clam_mb':
-        model = CLAM_MB(**model_dict)
-    else: # args.model_type == 'mil'
-        if n_classes > 2:
-            model = MIL_fc_mc(**model_dict)
-        else:
-            model = MIL_fc(**model_dict)
-    return model
+def build_mil_model(args, model_dict, device=None):
+    """
+    Unified MIL model builder supporting all techniques.
 
-def build_mil_model_2(args, model_dict, device):
+    Args:
+        args: Arguments object with model configuration, OR string model_type for backward compatibility
+        model_dict: Dictionary with model parameters (dropout, n_classes, embed_dim, etc.)
+        device: Device for CUDA operations (optional, for backward compatibility)
+
+    Returns:
+        Initialized MIL model
+    """
+    # Backward compatibility: support old signature (model_type, model_dict, n_classes)
+    if isinstance(args, str):
+        model_type = args
+        n_classes = device if device is not None else 2  # device was n_classes in old signature
+
+        if model_type == 'clam_sb':
+            model = CLAM_SB(**model_dict)
+        elif model_type == 'clam_mb':
+            model = CLAM_MB(**model_dict)
+        else:  # model_type == 'mil'
+            if n_classes > 2:
+                model = MIL_fc_mc(**model_dict)
+            else:
+                model = MIL_fc(**model_dict)
+        return model
+
+    # New signature: full args object
     if args.model_type in ['clam_sb', 'clam_mb']:
         if args.subtyping:
             model_dict.update({'subtyping': True})
-        
+
         if args.B > 0:
             model_dict.update({'k_sample': args.B})
-        
+
         if args.inst_loss == 'svm':
             from topk.svm import SmoothTop1SVM
             instance_loss_fn = SmoothTop1SVM(n_classes = 2)
-            if device.type == 'cuda':
+            if device and device.type == 'cuda':
                 instance_loss_fn = instance_loss_fn.cuda()
         else:
             instance_loss_fn = nn.CrossEntropyLoss()
-        
-        if args.model_type =='clam_sb':
+
+        if args.model_type == 'clam_sb':
             if args.topo:
                 model = CLAM_SB_Enhanced(**model_dict, instance_loss_fn=instance_loss_fn)
             else:
@@ -229,8 +249,46 @@ def build_mil_model_2(args, model_dict, device):
                 model = CLAM_MB(**model_dict, instance_loss_fn=instance_loss_fn)
         else:
             raise NotImplementedError
-    
-    else: # args.model_type == 'mil'
+
+    elif args.model_type == 'abmil':
+        # ABMIL: Attention-Based MIL
+        abmil_dict = {
+            'n_classes': args.n_classes,
+            'in_dim': model_dict.get('embed_dim', 512),
+            'hidden_dim': getattr(args, 'hidden_dim', 512),
+            'dropout': model_dict.get('dropout', 0.3),
+            'is_norm': getattr(args, 'abmil_is_norm', True)
+        }
+        model = ABMIL(**abmil_dict)
+
+    elif args.model_type == 'rrt':
+        # RRT: Region-Representative Transformer
+        rrt_dict = {
+            'n_classes': args.n_classes,
+            'in_dim': model_dict.get('embed_dim', 512),
+            'hidden_dim': getattr(args, 'hidden_dim', 512)
+        }
+        model = RRT(**rrt_dict)
+
+    elif args.model_type == 'transmil':
+        # TransMIL: Transformer MIL
+        transmil_dict = {
+            'n_classes': args.n_classes,
+            'in_dim': model_dict.get('embed_dim', 512),
+            'hidden_dim': getattr(args, 'hidden_dim', 512)
+        }
+        model = TransMIL(**transmil_dict)
+
+    elif args.model_type == 'wikg':
+        # WiKG: Weakly-supervised Instance-level Knowledge Graph
+        wikg_dict = {
+            'n_classes': args.n_classes,
+            'in_dim': model_dict.get('embed_dim', 512),
+            'hidden_dim': getattr(args, 'hidden_dim', 512)
+        }
+        model = WiKG(**wikg_dict)
+
+    else:  # args.model_type == 'mil'
         if args.n_classes > 2:
             model = MIL_fc_mc(**model_dict)
         else:

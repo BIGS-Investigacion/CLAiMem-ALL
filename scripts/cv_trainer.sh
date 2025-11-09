@@ -77,6 +77,22 @@ else
     DIVERSITY=""
 fi
 
+# Optional 8th parameter: MIL technique (default uses CLAM_MODEL_TYPE from task)
+if [ -z "$8" ]; then
+    MIL_TECHNIQUE=$CLAM_MODEL_TYPE
+else
+    # Valid options: clam_sb, clam_mb, mil, abmil, rrt, transmil, wikg
+    case "$8" in
+        clam_sb|clam_mb|mil|abmil|rrt|transmil|wikg)
+            MIL_TECHNIQUE=$8
+            ;;
+        *)
+            echo "Invalid MIL technique. Use one of: clam_sb, clam_mb, mil, abmil, rrt, transmil, wikg"
+            exit 1
+            ;;
+    esac
+fi
+
 SEED=42
 DROP_OUT=0.7
 LR=1e-4
@@ -102,7 +118,7 @@ case "$6" in
         MODEL_NAME=cnn
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     2)
         echo "Parameter 5 is set to 2."
@@ -110,7 +126,7 @@ case "$6" in
         MODEL_NAME=conch
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     3)
         echo "Parameter 5 is set to 3."
@@ -118,7 +134,7 @@ case "$6" in
         MODEL_NAME=ctranspath
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
 
         ;;
     4)
@@ -127,7 +143,7 @@ case "$6" in
         MODEL_NAME=hibou_b
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
 
         ;;
     5)
@@ -136,7 +152,7 @@ case "$6" in
         MODEL_NAME=hibou_l
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     6)
         echo "Parameter 5 is set to 6."
@@ -144,7 +160,7 @@ case "$6" in
         MODEL_NAME=hoptimus0
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     7)
         echo "Parameter 5 is set to 7."
@@ -152,7 +168,7 @@ case "$6" in
         MODEL_NAME=musk
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     8)
         echo "Parameter 5 is set to 8."
@@ -160,7 +176,7 @@ case "$6" in
         MODEL_NAME=phikon
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     9)
         echo "Parameter 5 is set to 9."
@@ -168,7 +184,7 @@ case "$6" in
         MODEL_NAME=provgigapath
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     10)
         echo "Parameter 5 is set to 10."
@@ -176,7 +192,7 @@ case "$6" in
         MODEL_NAME=retccl
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     11)
         echo "Parameter 5 is set to 11."
@@ -184,7 +200,7 @@ case "$6" in
         MODEL_NAME=uni
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     12)
         echo "Parameter 5 is set to 12."
@@ -192,7 +208,7 @@ case "$6" in
         MODEL_NAME=uni_2
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     13)
         echo "Parameter 5 is set to 13."
@@ -200,7 +216,7 @@ case "$6" in
         MODEL_NAME=virchow
         EXP_CODE=$MODEL_NAME
         FEATURES_DIRECTORY=$F_DIRECTORY/$DATABASE/features_$MODEL_NAME
-        RESULTS_DIR=.results/$DATABASE/$2/$CLAM_MODEL_TYPE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
+        RESULTS_DIR=.results/$DATABASE/$2/$MIL_TECHNIQUE/$K-cv-$PATIENT_STRAT-$CURRENT/$MODEL_NAME
         ;;
     *)
         echo "Parameter 5 is out of the valid range. Please provide a number between 1 and 13."
@@ -208,5 +224,5 @@ case "$6" in
         ;;
 esac
 
-CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --reg $REG --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict  $LABEL_DICT  $DIVERSITY --weighted_sample
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --reg $REG --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $MIL_TECHNIQUE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict  $LABEL_DICT  $DIVERSITY --weighted_sample
 
