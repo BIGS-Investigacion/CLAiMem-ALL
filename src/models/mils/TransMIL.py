@@ -46,7 +46,7 @@ class PPEG(nn.Module):
 class TransMIL(nn.Module):
     def __init__(self, n_classes = 2, in_dim=512, hidden_dim=512, *args, **kwargs):
         super(TransMIL, self).__init__()
-        self.pos_layer = PPEG(dim=512)
+        self.pos_layer = PPEG(dim=hidden_dim)
         self._fc1 = nn.Sequential(nn.Linear(in_dim, hidden_dim), nn.ReLU())
         self.cls_token = nn.Parameter(torch.randn(1, 1, hidden_dim))
         self.n_classes = n_classes
@@ -62,6 +62,10 @@ class TransMIL(nn.Module):
             h = h.unsqueeze(0)  # Add batch dimension: (N, D) -> (1, N, D)
 
         h = self._fc1(h) #[B, n, 512]
+
+        # Ensure h is 3D after _fc1
+        if len(h.shape) == 2:
+            h = h.unsqueeze(0)
 
         #---->pad
         H = h.shape[1]
