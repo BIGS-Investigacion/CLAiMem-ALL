@@ -43,7 +43,7 @@ model_arguments:
   ckpt_path: models/tcga/pam50/virchow/s_0_checkpoint.pt
   model_type: clam_mb # see utils/eval_utils/
   initiate_fn: initiate_model # see utils/eval_utils/
-  model_size: small
+  model_size: big
   drop_out: 0.7
   embed_dim: 2560
 heatmap_arguments:
