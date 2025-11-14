@@ -337,27 +337,27 @@ if __name__ == '__main__':
 
         samples = sample_args.samples
         for sample in samples:
-            if sample['sample'] and label_dict[label] == Y_hats[0]:
+            if sample['sample']:
                 tag = "label_{}_pred_{}".format(label, Y_hats[0])
                 sample_save_dir =  os.path.join(exp_args.production_save_dir, exp_args.save_exp_code, 'sampled_patches', str(tag), sample['name'])
                 os.makedirs(sample_save_dir, exist_ok=True)
                 print('sampling {}'.format(sample['name']))
-                sample_results = sample_rois(scores, coords, k=sample['k'], mode=sample['mode'], seed=sample['seed'], 
+                sample_results = sample_rois(scores, coords, k=sample['k'], mode=sample['mode'], seed=sample['seed'],
                     score_start=sample.get('score_start', 0), score_end=sample.get('score_end', 1))
                 for idx, (s_coord, s_score) in enumerate(zip(sample_results['sampled_coords'], sample_results['sampled_scores'])):
                     print('coord: {} score: {:.3f}'.format(s_coord, s_score))
                     patch = wsi_object.wsi.read_region(tuple(s_coord), patch_args.patch_level, (patch_args.patch_size, patch_args.patch_size)).convert('RGB')
                     patch.save(os.path.join(sample_save_dir, '{}_{}_x_{}_y_{}_a_{:.3f}.png'.format(idx, slide_id, s_coord[0], s_coord[1], s_score)))
 
-        
+
         samples = sample_args.reversed_samples
         for sample in samples:
-            if sample['sample'] and label_dict[label] == Y_hats[0]:
+            if sample['sample']:
                 tag = "reversed_label_{}_pred_{}".format(label, Y_hats[0])
                 sample_save_dir =  os.path.join(exp_args.production_save_dir, exp_args.save_exp_code, 'sampled_patches', str(tag), sample['name'])
                 os.makedirs(sample_save_dir, exist_ok=True)
                 print('sampling {}'.format(sample['name']))
-                sample_results = sample_rois(scores, coords, k=sample['k'], mode=sample['mode'], seed=sample['seed'], 
+                sample_results = sample_rois(scores, coords, k=sample['k'], mode=sample['mode'], seed=sample['seed'],
                     score_start=sample.get('score_start', 0), score_end=sample.get('score_end', 1))
                 for idx, (s_coord, s_score) in enumerate(zip(sample_results['sampled_coords'], sample_results['sampled_scores'])):
                     print('coord: {} score: {:.3f}'.format(s_coord, s_score))
