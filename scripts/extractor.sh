@@ -19,7 +19,7 @@ if [ "$4" -eq 0 ]; then
             echo "Using macenko file: $7"
         fi
     fi
-    python src/create_patches_fp.py --source $DATA_DIRECTORY --save_dir $PATCHES_DIRECTORY --patch_size $PATCH_SIZE --preset $PRESET_CSV --no_auto_skip --seg --patch --stitch $MACENKO
+    python src/create_patches_fp.py --source $DATA_DIRECTORY --save_dir $PATCHES_DIRECTORY --patch_size $PATCH_SIZE --preset $PRESET_CSV --seg --patch --stitch $MACENKO
     python src/bigs_auxiliar/downloader.py
     
 elif [ "$4" -eq 1 ]; then
