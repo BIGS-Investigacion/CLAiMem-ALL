@@ -88,15 +88,15 @@ else
 fi
 
 if [ -z "$9" ]; then
-    echo "Using default selection_method=attention"
-    SELECTION_METHOD="attention"
+    echo "Using default selection_method=self_attention"
+    SELECTION_METHOD="self_attention"
 else
     SELECTION_METHOD=$9
 fi
 
 # Validar método de selección
-if [ "$SELECTION_METHOD" != "attention" ] && [ "$SELECTION_METHOD" != "norm" ] && [ "$SELECTION_METHOD" != "variance" ] && [ "$SELECTION_METHOD" != "random" ]; then
-    echo "Invalid selection method. Use 'attention', 'norm', 'variance', or 'random'."
+if [ "$SELECTION_METHOD" != "attention" ] && [ "$SELECTION_METHOD" != "self_attention" ] && [ "$SELECTION_METHOD" != "norm" ] && [ "$SELECTION_METHOD" != "variance" ] && [ "$SELECTION_METHOD" != "random" ]; then
+    echo "Invalid selection method. Use 'attention', 'self_attention', 'norm', 'variance', or 'random'."
     exit 1
 fi
 

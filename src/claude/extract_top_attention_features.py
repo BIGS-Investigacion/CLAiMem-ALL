@@ -40,6 +40,39 @@ def load_wsi_features(file_path):
     return features, attention
 
 
+def compute_self_attention_scores(features, device='cpu'):
+    """
+    Calcula scores de self-attention para cada patch usando similarity scoring.
+
+    Para cada patch, calcula su similitud con todos los demás patches y usa
+    la suma de similitudes como score de importancia (patches más "representativos"
+    del WSI tendrán mayor score).
+
+    Args:
+        features: tensor [N, D] con features
+        device: dispositivo donde realizar las operaciones
+
+    Returns:
+        attention_scores: tensor [N] con scores de atención para cada patch
+    """
+    features = features.to(device)
+
+    # Normalizar features para calcular similitud coseno
+    features_norm = F.normalize(features, p=2, dim=1)  # [N, D]
+
+    # Calcular matriz de similitud: similarity[i,j] = cos(feature_i, feature_j)
+    similarity_matrix = torch.mm(features_norm, features_norm.t())  # [N, N]
+
+    # Aplicar softmax por filas para obtener pesos de atención
+    attention_weights = F.softmax(similarity_matrix, dim=1)  # [N, N]
+
+    # Score de cada patch = suma de sus similitudes con todos los demás
+    # Patches más "centrales" o representativos tendrán mayor score
+    attention_scores = attention_weights.sum(dim=1)  # [N]
+
+    return attention_scores.cpu()
+
+
 def get_top_k_features(features, attention=None, top_k=100, aggregation='attention', device='cpu'):
     """
     Extrae los top-K features según diferentes criterios
@@ -48,7 +81,7 @@ def get_top_k_features(features, attention=None, top_k=100, aggregation='attenti
         features: tensor [N, D] con features
         attention: tensor [N] con scores de atención (opcional)
         top_k: número de features a extraer
-        aggregation: método de selección ('attention', 'norm', 'random', 'variance')
+        aggregation: método de selección ('attention', 'self_attention', 'norm', 'random', 'variance')
         device: dispositivo donde realizar las operaciones
 
     Returns:
@@ -66,9 +99,20 @@ def get_top_k_features(features, attention=None, top_k=100, aggregation='attenti
     if top_k >= n_patches:
         return features.cpu(), torch.arange(n_patches)
 
-    if aggregation == 'attention' and attention is not None:
-        # Ordenar por scores de atención (de mayor a menor)
-        scores = attention
+    if aggregation == 'attention':
+        if attention is not None:
+            # Ordenar por scores de atención pre-calculados (de mayor a menor)
+            scores = attention
+            top_indices = torch.argsort(scores, descending=True)[:top_k]
+        else:
+            # Fallback: si no hay attention scores, calcular self-attention
+            print(f"  ⚠ Advertencia: método 'attention' seleccionado pero no hay scores de atención. Usando 'self_attention' en su lugar.")
+            scores = compute_self_attention_scores(features, device=device).to(device)
+            top_indices = torch.argsort(scores, descending=True)[:top_k]
+
+    elif aggregation == 'self_attention':
+        # Calcular self-attention entre patches del WSI
+        scores = compute_self_attention_scores(features, device=device).to(device)
         top_indices = torch.argsort(scores, descending=True)[:top_k]
 
     elif aggregation == 'norm':
@@ -178,9 +222,9 @@ def main():
     parser.add_argument('--top_k', '-k', type=int, default=100,
                         help='Número de features top a extraer por WSI (default: 100)')
     parser.add_argument('--selection_method', '-s', type=str,
-                        default='attention',
-                        choices=['attention', 'norm', 'variance', 'random'],
-                        help='Método para seleccionar top features (default: attention)')
+                        default='self_attention',
+                        choices=['attention', 'self_attention', 'norm', 'variance', 'random'],
+                        help='Método para seleccionar top features (default: self_attention)')
     parser.add_argument('--aggregation_method', '-a', type=str,
                         default='concat',
                         choices=['mean', 'max', 'sum', 'concat'],
