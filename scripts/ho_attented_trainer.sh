@@ -232,14 +232,14 @@ else
     EMBED_DIM=$EMBED_DIM
 fi
 
-# Directorios de features agregados
+# Directorios de features
+# TRAIN: agregados por atención
 AGG_BASE_DIR=data/aggregated_features
 FEATURES_DIRECTORY_TRAIN=$AGG_BASE_DIR/$DATABASE_TRAIN/$2/pt_files
-FEATURES_DIRECTORY_TEST=$AGG_BASE_DIR/$DATABASE_TEST/$2/pt_files
-
-# CSV de features agregados
 CSV_FILE_TRAIN_AGG=$FEATURES_DIRECTORY_TRAIN/labels.csv
-CSV_FILE_TEST_AGG=$FEATURES_DIRECTORY_TEST/labels.csv
+
+# TEST: originales sin agregar
+FEATURES_DIRECTORY_TEST=$FEATURES_DIRECTORY_TEST_ORIGINAL
 
 echo ""
 echo "================================================================================"
@@ -254,7 +254,7 @@ echo "Input dir:        $FEATURES_DIRECTORY_TRAIN_ORIGINAL/pt_files"
 echo "Output dir:       $FEATURES_DIRECTORY_TRAIN"
 echo "================================================================================"
 
-# Procesar features de entrenamiento
+# Procesar features de entrenamiento (AGREGACIÓN)
 python src/claude/extract_top_attention_features.py \
     --input_dir $FEATURES_DIRECTORY_TRAIN_ORIGINAL/pt_files \
     --output $FEATURES_DIRECTORY_TRAIN \
@@ -271,35 +271,7 @@ fi
 
 echo ""
 echo "================================================================================"
-echo "STEP 2: PROCESSING TEST FEATURES (ATTENTION-BASED AGGREGATION)"
-echo "================================================================================"
-echo "Database:         $DATABASE_TEST"
-echo "Subtype:          $2"
-echo "Model:            $MODEL_NAME"
-echo "Top-K:            $TOP_K"
-echo "Selection method: $SELECTION_METHOD"
-echo "Input dir:        $FEATURES_DIRECTORY_TEST_ORIGINAL/pt_files"
-echo "Output dir:       $FEATURES_DIRECTORY_TEST"
-echo "================================================================================"
-
-# Procesar features de test
-python src/claude/extract_top_attention_features.py \
-    --input_dir $FEATURES_DIRECTORY_TEST_ORIGINAL/pt_files \
-    --output $FEATURES_DIRECTORY_TEST \
-    --labels $CSV_FILE_TEST \
-    --top_k $TOP_K \
-    --selection_method $SELECTION_METHOD \
-    --aggregation_method concat \
-    --save_metadata
-
-if [ $? -ne 0 ]; then
-    echo "Error processing test features. Aborting."
-    exit 1
-fi
-
-echo ""
-echo "================================================================================"
-echo "STEP 3: CREATING SPLITS"
+echo "STEP 2: CREATING SPLITS"
 echo "================================================================================"
 
 # Crear splits para entrenamiento (con features agregados)
@@ -310,30 +282,30 @@ CURRENT_TRAIN=$(date +"%s")
 SPLIT_DIR_TRAIN=.splits/$DATABASE_TRAIN/ho-train-attented-$CURRENT_TRAIN
 python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TRAIN --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TRAIN_AGG --label_dict $LABEL_DICT $PATIENT_STRAT
 
-# Crear splits para test (con features agregados)
+# Crear splits para test (con features ORIGINALES sin agregar)
 LABEL_FRAC=1
 VAL_FRAC=0.0
 TEST_FRAC=0.0
 CURRENT_TEST=$(date +"%s")
 SPLIT_DIR_TEST=.splits/$DATABASE_TEST/ho-test-attented-$CURRENT_TEST
-python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TEST --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TEST_AGG --label_dict $LABEL_DICT $PATIENT_STRAT
+python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TEST --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TEST --label_dict $LABEL_DICT $PATIENT_STRAT
 
 # Directorio de resultados
 RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-attented-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
 
 echo ""
 echo "================================================================================"
-echo "STEP 4: TRAINING CLAM WITH AGGREGATED FEATURES"
+echo "STEP 3: TRAINING CLAM WITH AGGREGATED TRAIN FEATURES"
 echo "================================================================================"
-echo "Train features:   $FEATURES_DIRECTORY_TRAIN"
-echo "Test features:    $FEATURES_DIRECTORY_TEST"
+echo "Train features:   $FEATURES_DIRECTORY_TRAIN (AGGREGATED)"
+echo "Test features:    $FEATURES_DIRECTORY_TEST (ORIGINAL)"
 echo "Train CSV:        $CSV_FILE_TRAIN_AGG"
-echo "Test CSV:         $CSV_FILE_TEST_AGG"
+echo "Test CSV:         $CSV_FILE_TEST"
 echo "Results dir:      $RESULTS_DIR"
 echo "Embed dim:        $EMBED_DIM"
 echo "================================================================================"
 
-# Entrenar CLAM con features agregados
+# Entrenar CLAM con features agregados en train y originales en test
 CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py \
     --B $B \
     --reg $REG \
@@ -355,7 +327,7 @@ CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py \
     --split_dir_train $SPLIT_DIR_TRAIN \
     --split_dir_test $SPLIT_DIR_TEST \
     --csv_path_train $CSV_FILE_TRAIN_AGG \
-    --csv_path_test $CSV_FILE_TEST_AGG \
+    --csv_path_test $CSV_FILE_TEST \
     --label_dict $LABEL_DICT \
     $DIVERSITY
 

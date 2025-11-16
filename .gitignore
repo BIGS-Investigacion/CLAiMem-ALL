@@ -13,8 +13,8 @@ heatmaps/*
 runs*/*
 experiments/*
 data/samples/*
-scripts/custom/*
 stain_analysis/*
 models/*
 data/histo*
 results/*
+*/custom/
