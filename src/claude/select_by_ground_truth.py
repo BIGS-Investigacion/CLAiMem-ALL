@@ -12,6 +12,12 @@ import torch
 from pathlib import Path
 from tqdm import tqdm
 import json
+import sys
+
+# Add src to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
+from models import get_encoder
 
 
 def extract_slide_id(filename):
@@ -29,30 +35,36 @@ def extract_slide_id(filename):
 
 
 def load_virchow_model():
-    """Load Virchow v2 model from HuggingFace."""
-    from transformers import AutoImageProcessor, AutoModel
-    import timm
+    """Load Virchow v2 model."""
+    from PIL import Image
 
     print("Loading Virchow v2 model...")
-    processor = AutoImageProcessor.from_pretrained("paige-ai/Virchow2", trust_remote_code=True)
-    model = AutoModel.from_pretrained("paige-ai/Virchow2", trust_remote_code=True)
+    model, transform = get_encoder(model_name='virchow')
     model.eval()
 
-    # Move to GPU if available
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
+    # Move to CUDA if available
+    if torch.cuda.is_available():
+        model = model.cuda()
 
-    return model, processor, device
+    return model, transform
 
 
-def compute_embeddings(model, processor, device, image_list, image_dir, batch_size=8):
+def load_image(image_path, transform):
+    """Load and preprocess image for Virchow2."""
+    from PIL import Image
+
+    img = Image.open(image_path).convert('RGB')
+    img_tensor = transform(img)
+    return img_tensor
+
+
+def compute_embeddings(model, transform, image_list, image_dir, batch_size=8):
     """
     Compute embeddings for a list of images.
 
     Args:
         model: Virchow model
-        processor: Image processor
-        device: torch device
+        transform: Image transform function
         image_list: List of image filenames
         image_dir: Directory containing images
         batch_size: Batch size for processing
@@ -60,8 +72,6 @@ def compute_embeddings(model, processor, device, image_list, image_dir, batch_si
     Returns:
         torch.Tensor: Embeddings of shape [num_images, embedding_dim]
     """
-    from PIL import Image
-
     embeddings_list = []
 
     num_batches = (len(image_list) + batch_size - 1) // batch_size
@@ -70,28 +80,31 @@ def compute_embeddings(model, processor, device, image_list, image_dir, batch_si
         for i in tqdm(range(num_batches), desc="Computing embeddings"):
             batch_start = i * batch_size
             batch_end = min((i + 1) * batch_size, len(image_list))
-            batch_images = image_list[batch_start:batch_end]
+            batch_images = []
 
-            # Load and process images
-            pil_images = []
-            for img_file in batch_images:
+            for img_file in image_list[batch_start:batch_end]:
                 img_path = os.path.join(image_dir, img_file)
-                img = Image.open(img_path).convert('RGB')
-                pil_images.append(img)
+                try:
+                    img_tensor = load_image(img_path, transform)
+                    batch_images.append(img_tensor)
+                except Exception as e:
+                    print(f"Error loading {img_file}: {e}")
+                    continue
 
-            # Process batch
-            inputs = processor(images=pil_images, return_tensors="pt")
-            inputs = {k: v.to(device) for k, v in inputs.items()}
+            if len(batch_images) == 0:
+                continue
 
-            # Get embeddings
-            outputs = model(**inputs)
-            # Use CLS token embedding (first token)
-            batch_embeddings = outputs.last_hidden_state[:, 0, :]
-
+            # Get embeddings for batch
+            batch_embeddings = model(batch_images)
             embeddings_list.append(batch_embeddings.cpu())
 
     # Concatenate all embeddings
     embeddings = torch.cat(embeddings_list, dim=0)
+
+    # Remove extra dimensions if present (e.g., [N, 1, D] -> [N, D])
+    if embeddings.dim() == 3 and embeddings.shape[1] == 1:
+        embeddings = embeddings.squeeze(1)
+
     return embeddings
 
 
@@ -247,7 +260,7 @@ def main():
         return
 
     # Load model once
-    model, processor, device = load_virchow_model()
+    model, transform = load_virchow_model()
 
     # Process each label
     for label, image_list_with_paths in sorted(images_by_label.items()):
@@ -270,7 +283,7 @@ def main():
 
         for img_dir, img_files in images_by_dir.items():
             print(f"\nComputing embeddings for {len(img_files)} images from {img_dir}...")
-            embeddings = compute_embeddings(model, processor, device, img_files, img_dir, args.batch_size)
+            embeddings = compute_embeddings(model, transform, img_files, img_dir, args.batch_size)
             all_embeddings.append(embeddings)
             all_filenames.extend(img_files)
 

@@ -17,3 +17,4 @@ scripts/custom/*
 stain_analysis/*
 models/*
 data/histo*
+results/*
