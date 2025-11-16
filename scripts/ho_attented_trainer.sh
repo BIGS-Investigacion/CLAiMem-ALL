@@ -262,15 +262,15 @@ echo "Output dir:       $FEATURES_DIRECTORY_TRAIN"
 echo "================================================================================"
 
 # Procesar features de entrenamiento (AGREGACIÓN)
-#python src/claude/extract_top_attention_features.py \
-#    --input_dir $FEATURES_DIRECTORY_TRAIN_ORIGINAL/pt_files \
-#    --output $FEATURES_DIRECTORY_TRAIN/pt_files \
-#    --labels $CSV_FILE_TRAIN \
-#    --top_k $TOP_K \
-#    --selection_method $SELECTION_METHOD \
-#    --aggregation_method concat \
-#    --n_splits $N_SPLITS \
-#    --save_metadata
+python src/claude/extract_top_attention_features.py \
+    --input_dir $FEATURES_DIRECTORY_TRAIN_ORIGINAL/pt_files \
+    --output $FEATURES_DIRECTORY_TRAIN/pt_files \
+    --labels $CSV_FILE_TRAIN \
+    --top_k $TOP_K \
+    --selection_method $SELECTION_METHOD \
+    --aggregation_method concat \
+    --n_splits $N_SPLITS \
+    --save_metadata
 
 if [ $? -ne 0 ]; then
     echo "Error processing train features. Aborting."
