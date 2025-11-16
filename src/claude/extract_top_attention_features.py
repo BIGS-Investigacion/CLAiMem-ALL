@@ -50,13 +50,21 @@ def compute_self_attention_scores(features, device='cpu'):
     del WSI tendrán mayor score).
 
     Args:
-        features: tensor [N, D] con features
+        features: tensor [N, D] o [N, D, 1] con features
         device: dispositivo donde realizar las operaciones
 
     Returns:
         attention_scores: tensor [N] con scores de atención para cada patch
     """
     features = features.to(device)
+
+    # Si features tiene 3 dimensiones, aplanar a 2D
+    if features.dim() == 3:
+        features = features.squeeze(-1)  # [N, D, 1] -> [N, D]
+
+    # Asegurar que sea 2D
+    if features.dim() != 2:
+        raise ValueError(f"Features debe ser 2D o 3D, pero tiene {features.dim()} dimensiones")
 
     # Normalizar features para calcular similitud coseno
     features_norm = F.normalize(features, p=2, dim=1)  # [N, D]
@@ -79,7 +87,7 @@ def get_top_k_features(features, attention=None, top_k=100, aggregation='attenti
     Extrae los top-K features según diferentes criterios
 
     Args:
-        features: tensor [N, D] con features
+        features: tensor [N, D] o [N, D, 1] con features
         attention: tensor [N] con scores de atención (opcional)
         top_k: número de features a extraer
         aggregation: método de selección ('attention', 'self_attention', 'norm', 'random', 'variance')
@@ -89,10 +97,15 @@ def get_top_k_features(features, attention=None, top_k=100, aggregation='attenti
         top_features: tensor [top_k, D] con los top-k features seleccionados
         indices: índices seleccionados
     """
-    n_patches = features.shape[0]
-
     # Mover a GPU si está disponible
     features = features.to(device)
+
+    # Si features tiene 3 dimensiones, aplanar a 2D
+    if features.dim() == 3:
+        features = features.squeeze(-1)  # [N, D, 1] -> [N, D]
+
+    n_patches = features.shape[0]
+
     if attention is not None:
         attention = attention.to(device)
 
