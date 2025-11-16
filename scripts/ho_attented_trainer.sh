@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script para entrenar CLAM con features agregados por atención
-# Uso: bash scripts/ho_attented_trainer.sh <database> <subtype> <features_base_dir> <patient_strat> <her2_virt> <technique> <diversity> <top_k> <selection_method>
+# Uso: bash scripts/ho_attented_trainer.sh <database> <subtype> <features_base_dir> <patient_strat> <her2_virt> <technique> <diversity> <top_k> <selection_method> <n_splits>
 
 if [ "$1" != "cptac" ] && [ "$1" != "tcga" ]; then
     echo "Invalid database name. Use 'cptac' or 'tcga'."
@@ -100,14 +100,21 @@ if [ "$SELECTION_METHOD" != "attention" ] && [ "$SELECTION_METHOD" != "self_atte
     exit 1
 fi
 
+if [ -z "${10}" ]; then
+    echo "Using default n_splits=10"
+    N_SPLITS=10
+else
+    N_SPLITS=${10}
+fi
+
 SEED=42
 K=1
-DROP_OUT=0.7
+DROP_OUT=0.3
 LR=1e-4
 REG=0.0001
 BAG_LOSS=ce
 INST_LOSS=ce
-B=64
+B=128
 MODEL_SIZE=big
 CUDA_DEV=0
 
@@ -235,7 +242,7 @@ fi
 # Directorios de features
 # TRAIN: agregados por atención
 AGG_BASE_DIR=data/aggregated_features
-FEATURES_DIRECTORY_TRAIN=$AGG_BASE_DIR/$DATABASE_TRAIN/$2/pt_files
+FEATURES_DIRECTORY_TRAIN=$AGG_BASE_DIR/$DATABASE_TRAIN/$2
 CSV_FILE_TRAIN_AGG=$FEATURES_DIRECTORY_TRAIN/labels.csv
 
 # TEST: originales sin agregar
@@ -255,14 +262,15 @@ echo "Output dir:       $FEATURES_DIRECTORY_TRAIN"
 echo "================================================================================"
 
 # Procesar features de entrenamiento (AGREGACIÓN)
-python src/claude/extract_top_attention_features.py \
-    --input_dir $FEATURES_DIRECTORY_TRAIN_ORIGINAL/pt_files \
-    --output $FEATURES_DIRECTORY_TRAIN \
-    --labels $CSV_FILE_TRAIN \
-    --top_k $TOP_K \
-    --selection_method $SELECTION_METHOD \
-    --aggregation_method concat \
-    --save_metadata
+#python src/claude/extract_top_attention_features.py \
+#    --input_dir $FEATURES_DIRECTORY_TRAIN_ORIGINAL/pt_files \
+#    --output $FEATURES_DIRECTORY_TRAIN/pt_files \
+#    --labels $CSV_FILE_TRAIN \
+#    --top_k $TOP_K \
+#    --selection_method $SELECTION_METHOD \
+#    --aggregation_method concat \
+#    --n_splits $N_SPLITS \
+#    --save_metadata
 
 if [ $? -ne 0 ]; then
     echo "Error processing train features. Aborting."

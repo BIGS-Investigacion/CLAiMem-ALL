@@ -38,6 +38,13 @@ def load_wsi_features(file_path):
     if features is None:
         raise ValueError("No se encontraron features en el archivo")
 
+    # Manejar tensores con forma [N, 2, D] - promediar las dos representaciones
+    if features.dim() == 3 and features.shape[1] == 2:
+        features = features.mean(dim=1)  # [N, 2, D] -> [N, D]
+    # Manejar tensores con forma [N, 1, D] - eliminar dimensión extra
+    elif features.dim() == 3 and features.shape[1] == 1:
+        features = features.squeeze(1)  # [N, 1, D] -> [N, D]
+
     return features, attention
 
 
@@ -50,7 +57,7 @@ def compute_self_attention_scores(features, device='cpu'):
     del WSI tendrán mayor score).
 
     Args:
-        features: tensor [N, D] o [N, D, 1] con features
+        features: tensor [N, D] con features
         device: dispositivo donde realizar las operaciones
 
     Returns:
@@ -58,13 +65,9 @@ def compute_self_attention_scores(features, device='cpu'):
     """
     features = features.to(device)
 
-    # Si features tiene 3 dimensiones, aplanar a 2D
-    if features.dim() == 3:
-        features = features.squeeze(-1)  # [N, D, 1] -> [N, D]
-
     # Asegurar que sea 2D
     if features.dim() != 2:
-        raise ValueError(f"Features debe ser 2D o 3D, pero tiene {features.dim()} dimensiones")
+        raise ValueError(f"Features debe ser 2D [N, D], pero tiene forma {features.shape}")
 
     # Normalizar features para calcular similitud coseno
     features_norm = F.normalize(features, p=2, dim=1)  # [N, D]
@@ -87,7 +90,7 @@ def get_top_k_features(features, attention=None, top_k=100, aggregation='attenti
     Extrae los top-K features según diferentes criterios
 
     Args:
-        features: tensor [N, D] o [N, D, 1] con features
+        features: tensor [N, D] con features
         attention: tensor [N] con scores de atención (opcional)
         top_k: número de features a extraer
         aggregation: método de selección ('attention', 'self_attention', 'norm', 'random', 'variance')
@@ -99,10 +102,6 @@ def get_top_k_features(features, attention=None, top_k=100, aggregation='attenti
     """
     # Mover a GPU si está disponible
     features = features.to(device)
-
-    # Si features tiene 3 dimensiones, aplanar a 2D
-    if features.dim() == 3:
-        features = features.squeeze(-1)  # [N, D, 1] -> [N, D]
 
     n_patches = features.shape[0]
 
@@ -254,6 +253,8 @@ def main():
                         help='Procesar archivos en batch en GPU (más rápido pero usa más memoria)')
     parser.add_argument('--auto_discover', '-auto', action='store_true',
                         help='Descubrir automáticamente subcarpetas como etiquetas (input_dir/LABEL/*.pt)')
+    parser.add_argument('--n_splits', '-n', type=int, default=1,
+                        help='Número de archivos a generar por etiqueta (default: 1 - todo en un archivo)')
 
     args = parser.parse_args()
 
@@ -309,6 +310,9 @@ def main():
 
     # Procesar cada etiqueta
     input_dir = Path(args.input_dir)
+    output_dir = Path(args.output)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     aggregated_data = {}
     metadata = {
         'top_k': args.top_k,
@@ -316,6 +320,7 @@ def main():
         'aggregation_method': args.aggregation_method,
         'labels': {}
     }
+    csv_data = []
 
     for label, filenames in label_groups.items():
         print(f"\n{'='*80}")
@@ -373,56 +378,94 @@ def main():
         aggregated = aggregate_features_by_label(label_features, method=args.aggregation_method, device=device)
         aggregated_data[label] = aggregated
 
-        # Liberar memoria GPU si está siendo usada
-        if device.type == 'cuda':
-            torch.cuda.empty_cache()
+        print(f"\n  → Agregado final para '{label}': {aggregated.shape}")
 
-        # Guardar metadata
+        # GUARDAR INMEDIATAMENTE después de procesar esta etiqueta
+        safe_label = label.replace('/', '_').replace(' ', '_').replace('-', '_')
+
+        # Dividir en n_splits archivos si es necesario
+        if args.n_splits > 1:
+            # Calcular tamaño de cada split
+            total_samples = aggregated.shape[0]
+            samples_per_split = (total_samples + args.n_splits - 1) // args.n_splits  # Redondeo hacia arriba
+
+            print(f"  → Dividiendo en {args.n_splits} archivos ({samples_per_split} samples por archivo)")
+
+            for split_idx in range(args.n_splits):
+                start_idx = split_idx * samples_per_split
+                end_idx = min(start_idx + samples_per_split, total_samples)
+
+                if start_idx >= total_samples:
+                    break
+
+                split_features = aggregated[start_idx:end_idx]
+                output_file = output_dir / f"{safe_label}_split{split_idx}.pt"
+
+                # Guardar features como tensor
+                torch.save(split_features, output_file)
+                print(f"    ✓ Split {split_idx}: {output_file} - Shape: {split_features.shape}")
+
+                # Añadir entrada al CSV
+                csv_data.append({'filename': f"{safe_label}_split{split_idx}.pt", 'label': label})
+
+                # Guardar metadata si se solicita
+                if args.save_metadata:
+                    metadata_file = output_dir / f"{safe_label}_split{split_idx}_metadata.json"
+                    label_metadata = {
+                        'label': label,
+                        'split_idx': split_idx,
+                        'n_splits': args.n_splits,
+                        'n_files_source': len(processed_files),
+                        'files_source': processed_files,
+                        'feature_shape': list(split_features.shape),
+                        'top_k': args.top_k,
+                        'selection_method': args.selection_method,
+                        'aggregation_method': args.aggregation_method
+                    }
+                    with open(metadata_file, 'w') as f:
+                        json.dump(label_metadata, f, indent=2)
+        else:
+            # Guardar todo en un único archivo (comportamiento original)
+            output_file = output_dir / f"{safe_label}.pt"
+
+            # Guardar features como tensor
+            torch.save(aggregated, output_file)
+            print(f"  ✓ Guardado: {output_file} - Shape: {aggregated.shape}")
+
+            # Añadir entrada al CSV
+            csv_data.append({'filename': f"{safe_label}.pt", 'label': label})
+
+            # Guardar metadata si se solicita
+            if args.save_metadata:
+                metadata_file = output_dir / f"{safe_label}_metadata.json"
+                label_metadata = {
+                    'label': label,
+                    'n_files': len(processed_files),
+                    'files': processed_files,
+                    'feature_shape': list(aggregated.shape),
+                    'top_k': args.top_k,
+                    'selection_method': args.selection_method,
+                    'aggregation_method': args.aggregation_method
+                }
+                with open(metadata_file, 'w') as f:
+                    json.dump(label_metadata, f, indent=2)
+                print(f"  ✓ Metadata: {metadata_file}")
+
+        # Guardar metadata general
         metadata['labels'][label] = {
             'n_files': len(processed_files),
             'files': processed_files,
             'feature_shape': list(aggregated.shape)
         }
 
-        print(f"\n  → Agregado final para '{label}': {aggregated.shape}")
+        # Liberar memoria GPU si está siendo usada
+        if device.type == 'cuda':
+            torch.cuda.empty_cache()
 
-    # Guardar resultados
+    # Guardar CSV final
     print(f"\n{'='*80}")
-    print("GUARDANDO RESULTADOS")
+    print("GUARDANDO CSV FINAL")
     print('='*80)
-
-    output_dir = Path(args.output)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Guardar un archivo .pt por etiqueta
-    csv_data = []
-    for label, features in aggregated_data.items():
-        # Crear nombre de archivo limpio (reemplazar caracteres problemáticos)
-        safe_label = label.replace('/', '_').replace(' ', '_').replace('-', '_')
-        output_file = output_dir / f"{safe_label}.pt"
-
-        # Guardar features como tensor (formato simple)
-        torch.save(features, output_file)
-        print(f"✓ Guardado {label}: {output_file} - Shape: {features.shape}")
-
-        # Añadir entrada al CSV
-        csv_data.append({'filename': f"{safe_label}.pt", 'label': label})
-
-        # Guardar metadata si se solicita
-        if args.save_metadata:
-            metadata_file = output_dir / f"{safe_label}_metadata.json"
-            label_metadata = {
-                'label': label,
-                'n_files': metadata['labels'][label]['n_files'],
-                'files': metadata['labels'][label]['files'],
-                'feature_shape': list(features.shape),
-                'top_k': args.top_k,
-                'selection_method': args.selection_method,
-                'aggregation_method': args.aggregation_method
-            }
-            with open(metadata_file, 'w') as f:
-                json.dump(label_metadata, f, indent=2)
-            print(f"  └─ Metadata: {metadata_file}")
 
     # Guardar CSV con mapeo manteniendo formato original (case_id, slide_id, label)
     csv_path = output_dir / 'labels.csv'

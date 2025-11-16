@@ -18,3 +18,4 @@ models/*
 data/histo*
 results/*
 */custom/
+*/aggregated*/
