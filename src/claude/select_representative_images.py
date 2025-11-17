@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """
-Select representative images closest to the mean embedding using Virchow v2.
+Select representative images based on distance to centroid using Virchow v2.
+
+Supports three selection modes:
+- closest: Images nearest to the centroid (most representative/typical)
+- farthest: Images farthest from centroid (outliers/atypical)
+- midrange: Images at medium distance (moderately representative)
 """
 
 import os
@@ -14,9 +19,11 @@ import json
 
 # Add src to path
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+# Go up two levels from src/claude/ to project root, then add src
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(project_root, 'src'))
 
-from models import get_encoder
+from models.builder import get_encoder
 
 
 def load_image(image_path, transform):
@@ -76,27 +83,53 @@ def compute_embeddings(image_dir, image_list, model, transform, batch_size=16):
     return embeddings
 
 
-def select_representative_images(embeddings, image_list, n_images=25):
+def select_representative_images(embeddings, image_list, n_images=25, mode='closest'):
     """
-    Select n_images closest to the mean embedding.
+    Select n_images according to different selection criteria.
 
     Args:
         embeddings: Tensor of shape (N, embedding_dim)
         image_list: List of image filenames
         n_images: Number of representative images to select
+        mode: Selection mode - 'closest', 'farthest', or 'midrange'
+            - 'closest': Images closest to the centroid (mean embedding)
+            - 'farthest': Images farthest from the centroid (outliers)
+            - 'midrange': Images at medium distance from centroid
 
     Returns:
         selected_images: List of selected image filenames
         distances: Distances to mean for selected images
     """
-    # Compute mean embedding
+    # Compute mean embedding (centroid)
     mean_embedding = embeddings.mean(dim=0, keepdim=True)
 
     # Compute distances to mean
     distances = torch.norm(embeddings - mean_embedding, dim=1)
 
-    # Get indices of n_images closest to mean
-    _, indices = torch.topk(distances, k=min(n_images, len(image_list)), largest=False)
+    if mode == 'closest':
+        # Get indices of n_images closest to mean
+        _, indices = torch.topk(distances, k=min(n_images, len(image_list)), largest=False)
+
+    elif mode == 'farthest':
+        # Get indices of n_images farthest from mean
+        _, indices = torch.topk(distances, k=min(n_images, len(image_list)), largest=True)
+
+    elif mode == 'midrange':
+        # Get images at medium distance (around the median distance)
+        sorted_distances, sorted_indices = torch.sort(distances)
+
+        # Find the median position
+        median_pos = len(sorted_distances) // 2
+
+        # Select n_images around the median
+        half_n = n_images // 2
+        start_idx = max(0, median_pos - half_n)
+        end_idx = min(len(sorted_distances), median_pos + (n_images - half_n))
+
+        indices = sorted_indices[start_idx:end_idx]
+
+    else:
+        raise ValueError(f"Invalid mode '{mode}'. Must be 'closest', 'farthest', or 'midrange'.")
 
     # Get selected images - indices is 1D tensor
     indices_np = indices.cpu().numpy()
@@ -123,6 +156,13 @@ def main():
         type=int,
         default=25,
         help='Number of representative images to select (default: 25)'
+    )
+    parser.add_argument(
+        '--mode',
+        type=str,
+        default='closest',
+        choices=['closest', 'farthest', 'midrange'],
+        help='Selection mode: closest (near centroid), farthest (outliers), midrange (medium distance) (default: closest)'
     )
     parser.add_argument(
         '--output',
@@ -171,11 +211,25 @@ def main():
     selected_images, distances = select_representative_images(
         embeddings,
         image_list,
-        n_images=args.n_images
+        n_images=args.n_images,
+        mode=args.mode
     )
+
+    # Compute statistics for context
+    mean_embedding = embeddings.mean(dim=0, keepdim=True)
+    all_distances = torch.norm(embeddings - mean_embedding, dim=1)
+    min_dist = all_distances.min().item()
+    max_dist = all_distances.max().item()
+    median_dist = all_distances.median().item()
+    mean_dist = all_distances.mean().item()
 
     # Print results
     print("\n" + "="*60)
+    print(f"Selection mode: {args.mode.upper()}")
+    print(f"Distance statistics (all images):")
+    print(f"  Min: {min_dist:.4f}, Max: {max_dist:.4f}")
+    print(f"  Mean: {mean_dist:.4f}, Median: {median_dist:.4f}")
+    print("="*60)
     print(f"Selected {len(selected_images)} representative images:")
     print("="*60)
     for i, (img, dist) in enumerate(zip(selected_images, distances), 1):
@@ -188,13 +242,24 @@ def main():
                 f.write(f"{img}\n")
         print(f"\nSaved selected images to {args.output}")
 
-        # Also save with distances as JSON
+        # Also save with distances and metadata as JSON
         output_json = args.output.replace('.txt', '_with_distances.json')
-        with open(output_json, 'w') as f:
-            json.dump([
+        output_data = {
+            'mode': args.mode,
+            'n_images': len(selected_images),
+            'statistics': {
+                'min_distance': min_dist,
+                'max_distance': max_dist,
+                'mean_distance': mean_dist,
+                'median_distance': median_dist
+            },
+            'selected_images': [
                 {'filename': img, 'distance': dist}
                 for img, dist in zip(selected_images, distances)
-            ], f, indent=2)
+            ]
+        }
+        with open(output_json, 'w') as f:
+            json.dump(output_data, f, indent=2)
         print(f"Saved detailed results to {output_json}")
 
 

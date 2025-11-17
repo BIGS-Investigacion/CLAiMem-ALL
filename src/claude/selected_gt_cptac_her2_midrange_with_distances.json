@@ -1,0 +1,112 @@
+{
+  "mode": "midrange",
+  "n_images": 25,
+  "statistics": {
+    "min_distance": 23.640625,
+    "max_distance": 51.9375,
+    "mean_distance": 34.3125,
+    "median_distance": 33.8125
+  },
+  "selected_images": [
+    {
+      "filename": "5_11BR060-97cc4d46-cf80-41f1-b99c-bc4829_x_68352_y_55296_a_99.966.png",
+      "distance": 33.21875
+    },
+    {
+      "filename": "5_06BR003-31b13596-554e-452f-91a4-7e67a8_x_86912_y_8576_a_99.902.png",
+      "distance": 33.3125
+    },
+    {
+      "filename": "5_01BR017-0c7c8dfb-ef95-4fee-a695-63b786_x_19168_y_1936_a_99.782.png",
+      "distance": 33.34375
+    },
+    {
+      "filename": "1_11BR060-cc162acb-2fbc-4356-a664-b6c104_x_17776_y_22720_a_99.992.png",
+      "distance": 33.40625
+    },
+    {
+      "filename": "6_11BR028-3b177fd6-e7d2-4312-bec7-4a253d_x_115056_y_52531_a_99.956.png",
+      "distance": 33.46875
+    },
+    {
+      "filename": "3_11BR038-cc547d34-07e1-4bc8-a89b-0d8e96_x_10928_y_18178_a_99.972.png",
+      "distance": 33.5625
+    },
+    {
+      "filename": "0_05BR044-d14f8327-a44a-4162-8f82-c70b0f_x_62795_y_12961_a_100.000.png",
+      "distance": 33.59375
+    },
+    {
+      "filename": "6_18BR002-fe591474-99d7-44d3-be73-c3b8ed_x_30720_y_27552_a_99.927.png",
+      "distance": 33.625
+    },
+    {
+      "filename": "2_11BR060-97cc4d46-cf80-41f1-b99c-bc4829_x_41728_y_24576_a_99.987.png",
+      "distance": 33.65625
+    },
+    {
+      "filename": "1_11BR042-d1d094d8-1b54-40a2-9e14-43b0d6_x_24272_y_51200_a_99.989.png",
+      "distance": 33.75
+    },
+    {
+      "filename": "7_20BR008-f8005701-9810-427e-b317-b09691_x_62804_y_21075_a_99.133.png",
+      "distance": 33.75
+    },
+    {
+      "filename": "1_09BR005-db4c7d25-8920-4968-983a-d5b11e_x_13088_y_26592_a_99.980.png",
+      "distance": 33.8125
+    },
+    {
+      "filename": "0_11BR038-4e766d9f-ede3-4311-bf09-b1f9ba_x_21040_y_45057_a_100.000.png",
+      "distance": 33.96875
+    },
+    {
+      "filename": "5_01BR017-09659708-7747-4d59-a3b9-e221e0_x_11680_y_37520_a_99.716.png",
+      "distance": 34.0625
+    },
+    {
+      "filename": "7_11BR004-f33d08f0-f15c-4f34-90ba-7cbe75_x_22226_y_30848_a_99.830.png",
+      "distance": 34.15625
+    },
+    {
+      "filename": "4_20BR008-f8005701-9810-427e-b317-b09691_x_23680_y_19667_a_99.504.png",
+      "distance": 34.1875
+    },
+    {
+      "filename": "0_09BR005-150c2086-1815-40d2-bc5d-8eeb48_x_12512_y_31264_a_100.000.png",
+      "distance": 34.21875
+    },
+    {
+      "filename": "6_06BR003-4f6b74fb-8b2e-40e2-87a5-02817e_x_38816_y_42865_a_99.912.png",
+      "distance": 34.28125
+    },
+    {
+      "filename": "4_11BR042-a176fcc2-97b5-45c3-a0f3-3b2e41_x_58736_y_7904_a_99.957.png",
+      "distance": 34.3125
+    },
+    {
+      "filename": "0_11BR028-10f3b034-038b-481e-b501-a28055_x_4608_y_32256_a_100.000.png",
+      "distance": 34.3125
+    },
+    {
+      "filename": "0_01BR010-26ecef2d-fcf3-4b85-9647-5e5d29_x_8672_y_5792_a_100.000.png",
+      "distance": 34.34375
+    },
+    {
+      "filename": "5_20BR008-b87e7f88-a1f2-425a-8cff-8ae4b9_x_25104_y_16656_a_99.838.png",
+      "distance": 34.5625
+    },
+    {
+      "filename": "2_11BR030-ced30fb4-9c6a-41fa-b252-21b2e0_x_23601_y_25906_a_99.891.png",
+      "distance": 34.65625
+    },
+    {
+      "filename": "2_05BR044-d14f8327-a44a-4162-8f82-c70b0f_x_63307_y_13985_a_94.595.png",
+      "distance": 34.65625
+    },
+    {
+      "filename": "1_11BR042-a176fcc2-97b5-45c3-a0f3-3b2e41_x_58224_y_7904_a_99.989.png",
+      "distance": 34.65625
+    }
+  ]
+}
