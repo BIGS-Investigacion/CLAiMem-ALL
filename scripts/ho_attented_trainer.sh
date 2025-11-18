@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Script para entrenar CLAM con features agregados por atención
+# Este script llama a ho_main_attended.py que integra toda la lógica de:
+#   - Agregación de features por atención
+#   - Creación de splits train/val/test
+#   - Entrenamiento con CLAM
+#
 # Uso: bash scripts/ho_attented_trainer.sh <database> <subtype> <features_base_dir> <patient_strat> <her2_virt> <technique> <diversity> <top_k> <selection_method> <n_splits>
 
 if [ "$1" != "cptac" ] && [ "$1" != "tcga" ]; then
@@ -239,82 +244,25 @@ else
     EMBED_DIM=$EMBED_DIM
 fi
 
-# Directorios de features
-# TRAIN: agregados por atención
-AGG_BASE_DIR=data/aggregated_features
-FEATURES_DIRECTORY_TRAIN=$AGG_BASE_DIR/$DATABASE_TRAIN/$2
-CSV_FILE_TRAIN_AGG=$FEATURES_DIRECTORY_TRAIN/$2/pt_files/labels.csv
-
 # TEST: originales sin agregar
 FEATURES_DIRECTORY_TEST=$FEATURES_DIRECTORY_TEST_ORIGINAL
 
-echo ""
-echo "================================================================================"
-echo "STEP 1: PROCESSING TRAIN FEATURES (ATTENTION-BASED AGGREGATION)"
-echo "================================================================================"
-echo "Database:         $DATABASE_TRAIN"
-echo "Subtype:          $2"
-echo "Model:            $MODEL_NAME"
-echo "Top-K:            $TOP_K"
-echo "Selection method: $SELECTION_METHOD"
-echo "Input dir:        $FEATURES_DIRECTORY_TRAIN_ORIGINAL/pt_files"
-echo "Output dir:       $FEATURES_DIRECTORY_TRAIN"
-echo "================================================================================"
-
-# Procesar features de entrenamiento (AGREGACIÓN)
-python src/claude/extract_top_attention_features.py \
-    --input_dir $FEATURES_DIRECTORY_TRAIN_ORIGINAL/pt_files \
-    --output $FEATURES_DIRECTORY_TRAIN/pt_files \
-    --labels $CSV_FILE_TRAIN \
+# Llamar al nuevo script ho_main_attended.py que integra toda la lógica
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main_attended.py \
+    --database_train $DATABASE_TRAIN \
+    --database_test $DATABASE_TEST \
+    --subtype $2 \
     --top_k $TOP_K \
     --selection_method $SELECTION_METHOD \
-    --aggregation_method concat \
     --n_splits $N_SPLITS \
-    --save_metadata
-
-if [ $? -ne 0 ]; then
-    echo "Error processing train features. Aborting."
-    exit 1
-fi
-
-echo ""
-echo "================================================================================"
-echo "STEP 2: CREATING SPLITS"
-echo "================================================================================"
-
-# Crear splits para entrenamiento (con features agregados)
-LABEL_FRAC=1
-VAL_FRAC=0.15
-TEST_FRAC=0.0
-CURRENT_TRAIN=$(date +"%s")
-SPLIT_DIR_TRAIN=.splits/$DATABASE_TRAIN/ho-train-attented-$CURRENT_TRAIN
-python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TRAIN --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TRAIN_AGG --label_dict $LABEL_DICT $PATIENT_STRAT
-
-# Crear splits para test (con features ORIGINALES sin agregar)
-LABEL_FRAC=1
-VAL_FRAC=0.0
-TEST_FRAC=0.0
-CURRENT_TEST=$(date +"%s")
-SPLIT_DIR_TEST=.splits/$DATABASE_TEST/ho-test-attented-$CURRENT_TEST
-python src/create_splits_seq.py --seed $SEED --k $K --test_frac $TEST_FRAC --val_frac $VAL_FRAC --split_dir $SPLIT_DIR_TEST --label_frac $LABEL_FRAC --csv_path $CSV_FILE_TEST --label_dict $LABEL_DICT $PATIENT_STRAT
-
-# Directorio de resultados
-RESULTS_DIR=.results/$DATABASE_TRAIN/$2/$CLAM_MODEL_TYPE/ho-attented-$PATIENT_STRAT-$DATABASE_TRAIN-$CURRENT_TRAIN-$DATABASE_TEST-$CURRENT_TEST/$MODEL_NAME
-
-echo ""
-echo "================================================================================"
-echo "STEP 3: TRAINING CLAM WITH AGGREGATED TRAIN FEATURES"
-echo "================================================================================"
-echo "Train features:   $FEATURES_DIRECTORY_TRAIN (AGGREGATED)"
-echo "Test features:    $FEATURES_DIRECTORY_TEST (ORIGINAL)"
-echo "Train CSV:        $CSV_FILE_TRAIN_AGG"
-echo "Test CSV:         $CSV_FILE_TEST"
-echo "Results dir:      $RESULTS_DIR"
-echo "Embed dim:        $EMBED_DIM"
-echo "================================================================================"
-
-# Entrenar CLAM con features agregados en train y originales en test
-CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py \
+    --data_root_dir_train_original $FEATURES_DIRECTORY_TRAIN_ORIGINAL \
+    --data_root_dir_test $FEATURES_DIRECTORY_TEST \
+    --csv_path_train $CSV_FILE_TRAIN \
+    --csv_path_test $CSV_FILE_TEST \
+    --label_dict "$LABEL_DICT" \
+    --model_type $CLAM_MODEL_TYPE \
+    --exp_code $EXP_CODE \
+    --embed_dim $EMBED_DIM \
     --B $B \
     --reg $REG \
     --model_size $MODEL_SIZE \
@@ -325,19 +273,10 @@ CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py \
     --k $K \
     --bag_loss $BAG_LOSS \
     --inst_loss $INST_LOSS \
-    --model_type $CLAM_MODEL_TYPE \
-    --results_dir $RESULTS_DIR \
     --log_data \
     --subtyping \
-    --data_root_dir_train $FEATURES_DIRECTORY_TRAIN \
-    --data_root_dir_test $FEATURES_DIRECTORY_TEST \
-    --embed_dim $EMBED_DIM \
-    --split_dir_train $SPLIT_DIR_TRAIN \
-    --split_dir_test $SPLIT_DIR_TEST \
-    --csv_path_train $CSV_FILE_TRAIN_AGG \
-    --csv_path_test $CSV_FILE_TEST \
-    --label_dict $LABEL_DICT \
-    $DIVERSITY
+    $DIVERSITY \
+    $(if [ -n "$PATIENT_STRAT" ]; then echo "--patient_strat"; fi)
 
 echo ""
 echo "================================================================================"
