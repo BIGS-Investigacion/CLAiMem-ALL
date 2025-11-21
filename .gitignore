@@ -19,3 +19,4 @@ data/histo*
 results/*
 */custom/
 */aggregated*/
+cache/*
