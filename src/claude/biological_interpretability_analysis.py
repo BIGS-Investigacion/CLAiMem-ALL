@@ -322,7 +322,7 @@ def analyze_intra_cohort(df: pd.DataFrame, cohort_name: str,
 # ==============================================================================
 
 def analyze_inter_cohort(df_tcga: pd.DataFrame, df_cptac: pd.DataFrame,
-                         task: str) -> Dict:
+                         task: str, exclude_classes: Optional[List[str]] = None) -> Dict:
     """
     Compare histomorphological features between TCGA and CPTAC for each class.
 
@@ -330,6 +330,7 @@ def analyze_inter_cohort(df_tcga: pd.DataFrame, df_cptac: pd.DataFrame,
         df_tcga: TCGA annotations
         df_cptac: CPTAC annotations
         task: Task name
+        exclude_classes: List of class labels to exclude from inter-cohort comparison (default: None)
 
     Returns:
         Dictionary with comparison results
@@ -343,6 +344,14 @@ def analyze_inter_cohort(df_tcga: pd.DataFrame, df_cptac: pd.DataFrame,
     classes_tcga = set(df_tcga['ETIQUETA'].unique())
     classes_cptac = set(df_cptac['ETIQUETA'].unique())
     common_classes = classes_tcga & classes_cptac
+
+    # Exclude specified classes from inter-cohort comparison
+    if exclude_classes is not None and len(exclude_classes) > 0:
+        n_before = len(common_classes)
+        common_classes = common_classes - set(exclude_classes)
+        n_excluded = n_before - len(common_classes)
+        if n_excluded > 0:
+            print(f"\n  Excluded {n_excluded} classes from inter-cohort comparison: {', '.join(exclude_classes)}")
 
     print(f"\n  Comparing {len(common_classes)} common classes between cohorts...")
 
@@ -475,11 +484,13 @@ def plot_feature_distributions(df: pd.DataFrame, feature: str,
     # Box plot
     bp = ax.boxplot(data, labels=classes, patch_artist=True)
 
-    # Color boxes
-    colors = plt.cm.tab10(np.linspace(0, 1, len(classes)))
-    for patch, color in zip(bp['boxes'], colors):
+    # Use clustering palette (pink/magenta) for boxes
+    palette = sns.color_palette("ch:s=-.2,r=.6", n_colors=len(classes))
+    for patch, color in zip(bp['boxes'], palette):
         patch.set_facecolor(color)
         patch.set_alpha(0.7)
+        patch.set_edgecolor('black')
+        patch.set_linewidth(1.2)
 
     ax.set_xlabel('Class', fontsize=12, fontweight='bold')
     ax.set_ylabel(FEATURE_LABELS.get(feature, feature), fontsize=12, fontweight='bold')
@@ -539,11 +550,15 @@ def plot_effect_sizes_heatmap(intra_tcga: Dict, intra_cptac: Dict,
 
     df = df.set_index('Feature')
 
-    # Plot
+    # Plot with clustering palette
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    sns.heatmap(df.T, annot=True, fmt='.3f', cmap='YlOrRd', vmin=0, vmax=0.5,
-                cbar_kws={'label': 'Effect Size'}, linewidths=0.5, ax=ax)
+    # Use clustering palette (pink/magenta)
+    cmap = sns.color_palette("ch:s=-.2,r=.6", as_cmap=True)
+
+    sns.heatmap(df.T, annot=True, fmt='.3f', cmap=cmap, vmin=0, vmax=0.5,
+                cbar_kws={'label': 'Effect Size'}, linewidths=0.5,
+                linecolor='white', ax=ax)
 
     ax.set_title(f'Effect Sizes: Histomorphological Differences Across Classes\n{task.upper()}',
                  fontsize=14, fontweight='bold', pad=20)
@@ -568,7 +583,10 @@ def plot_biological_shift(df_shift: pd.DataFrame, task: str,
     """
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    colors = plt.cm.RdYlGn_r(df_shift['B_c'] / df_shift['B_c'].max())
+    # Use clustering palette (pink/magenta) - gradient based on values
+    cmap = sns.color_palette("ch:s=-.2,r=.6", as_cmap=True)
+    norm_values = df_shift['B_c'] / df_shift['B_c'].max()
+    colors = [cmap(val) for val in norm_values]
 
     bars = ax.bar(df_shift['Class'], df_shift['B_c'],
                   color=colors, alpha=0.8, edgecolor='black')
@@ -707,6 +725,8 @@ Example:
                         help='Skip generating plots')
     parser.add_argument('--plot_format', type=str, default='png',
                         choices=['png', 'pdf', 'svg'])
+    parser.add_argument('--exclude_classes', '-e', type=str, nargs='+',
+                        help='List of class labels to exclude from analysis (e.g., PAM50_Normal PAM50_Her2-enriched)')
 
     args = parser.parse_args()
 
@@ -719,6 +739,8 @@ Example:
     print(f"Task:        {args.task.upper()}")
     print(f"Annotations: {args.annotations}")
     print(f"Output:      {args.output}")
+    if args.exclude_classes:
+        print(f"Exclude:     {', '.join(args.exclude_classes)}")
     print("="*80 + "\n")
 
     # Load annotations
@@ -744,7 +766,7 @@ Example:
     print("\n" + "="*80)
     print("INTER-COHORT ANALYSIS (TCGA vs CPTAC)")
     print("="*80)
-    inter_cohort = analyze_inter_cohort(df_tcga, df_cptac, args.task)
+    inter_cohort = analyze_inter_cohort(df_tcga, df_cptac, args.task, exclude_classes=args.exclude_classes)
 
     # Compute biological shift indicators
     print("\nComputing biological shift indicators...")

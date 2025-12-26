@@ -208,5 +208,14 @@ case "$6" in
         ;;
 esac
 
-CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --reg $REG --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict  $LABEL_DICT  $DIVERSITY  --weighted_sample
+if [ -z "$8" ]; then
+    echo "Please provide the eight parameter as 'YES' or 'NO' to select weighted sampling."
+    exit 1
+elif [ "$8" == "YES" ]; then
+    WEIGHTED_SAMPLING="--weighted_sampling" 
+else
+    WEIGHTED_SAMPLING=""
+fi
+
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/cv_main.py --B $B --reg $REG --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir $FEATURES_DIRECTORY --embed_dim $EMBED_DIM --split_dir $SPLIT_DIR --csv_path $CSV_FILE --label_dict  $LABEL_DICT  $DIVERSITY  $WEIGHTED_SAMPLING
 

@@ -459,17 +459,14 @@ def compute_class_centroids(class_features: Dict[str, np.ndarray]) -> Dict:
 def compute_inter_cohort_distances(class_features_tcga: Dict,
                                    class_features_cptac: Dict) -> pd.DataFrame:
     """
-    Compute distances between samples from TCGA and CPTAC within the same class.
-
-    For each class, computes all pairwise distances between TCGA and CPTAC samples,
-    and returns mean, std, min, and max distances.
+    Compute distances between centroids of TCGA and CPTAC within the same class.
 
     Args:
         class_features_tcga: {class_label: feature matrix [N_tcga, D]}
         class_features_cptac: {class_label: feature matrix [N_cptac, D]}
 
     Returns:
-        DataFrame with inter-cohort distance statistics per class
+        DataFrame with centroid distance per class
     """
     results = []
 
@@ -484,38 +481,18 @@ def compute_inter_cohort_distances(class_features_tcga: Dict,
         n_tcga = len(features_tcga)
         n_cptac = len(features_cptac)
 
-        print(f"  Computing distances for {label}: {n_tcga} TCGA × {n_cptac} CPTAC samples")
+        print(f"  Computing centroid distance for {label}: {n_tcga} TCGA samples, {n_cptac} CPTAC samples")
 
-        # Compute pairwise distances in batches to avoid memory issues
-        # Process TCGA samples in batches
-        batch_size = 100
-        all_distances = []
+        # Compute centroids for each cohort
+        centroid_tcga = np.mean(features_tcga, axis=0)
+        centroid_cptac = np.mean(features_cptac, axis=0)
 
-        for i in range(0, n_tcga, batch_size):
-            end_i = min(i + batch_size, n_tcga)
-            batch_tcga = features_tcga[i:end_i]
-
-            # Compute distances for this batch: [batch_size, n_cptac]
-            batch_distances = np.sqrt(np.sum((batch_tcga[:, np.newaxis, :] - features_cptac[np.newaxis, :, :]) ** 2, axis=2))
-            all_distances.append(batch_distances)
-
-        # Concatenate all batches
-        distances = np.vstack(all_distances)
-
-        # Compute statistics from the full distance matrix
-        mean_dist = np.mean(distances)
-        std_dist = np.std(distances)
-        min_dist = np.min(distances)
-        max_dist = np.max(distances)
-        median_dist = np.median(distances)
+        # Compute Euclidean distance between centroids
+        centroid_distance = np.linalg.norm(centroid_tcga - centroid_cptac)
 
         results.append({
             'Class': label,
-            'Mean_Distance': mean_dist,
-            'Std_Distance': std_dist,
-            'Min_Distance': min_dist,
-            'Max_Distance': max_dist,
-            'Median_Distance': median_dist,
+            'Centroid_Distance': centroid_distance,
             'N_TCGA': n_tcga,
             'N_CPTAC': n_cptac
         })
@@ -675,19 +652,19 @@ def plot_centroid_distances(df_distances: pd.DataFrame,
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Plot bars with pastel pink/magenta palette
+    # Plot bars with magma palette
     x = np.arange(len(df))
     width = 0.35
 
-    # Use seaborn color palette for pastel colors with good contrast
-    pastel_palette = sns.color_palette("ch:s=-.2,r=.6", n_colors=2)
+    # Use magma color palette
+    magma_palette = sns.color_palette("magma", n_colors=2)
 
-    bars1 = ax.bar(x - width/2, df['Mean_Distance'], width,
-                   label='Inter-Cohort Distance (TCGA ↔ CPTAC)',
-                   color=pastel_palette[0], alpha=0.8, edgecolor='black')
+    bars1 = ax.bar(x - width/2, df['Centroid_Distance'], width,
+                   label='Centroid Distance (TCGA ↔ CPTAC)',
+                   color=magma_palette[0], alpha=0.8, edgecolor='black')
     bars2 = ax.bar(x + width/2, df['Mean_Std'], width,
                    label='Mean Intra-Class Std',
-                   color=pastel_palette[1], alpha=0.8, edgecolor='black')
+                   color=magma_palette[1], alpha=0.8, edgecolor='black')
 
     ax.set_xlabel('Class', fontsize=12, fontweight='bold')
     ax.set_ylabel('Distance / Std in Embedding Space', fontsize=12, fontweight='bold')
@@ -734,15 +711,15 @@ def plot_silhouette_comparison(silhouette_tcga: Dict,
     x = np.arange(len(classes))
     width = 0.35
 
-    # Use seaborn color palette for pastel colors with good contrast
-    pastel_palette = sns.color_palette("ch:s=-.2,r=.6", n_colors=2)
+    # Use magma color palette
+    magma_palette = sns.color_palette("magma", n_colors=2)
 
     bars1 = ax.bar(x - width/2, scores_tcga, width,
                    label=f"TCGA (avg={silhouette_tcga['silhouette_avg']:.3f})",
-                   color=pastel_palette[0], alpha=0.8, edgecolor='black')
+                   color=magma_palette[0], alpha=0.8, edgecolor='black')
     bars2 = ax.bar(x + width/2, scores_cptac, width,
                    label=f"CPTAC (avg={silhouette_cptac['silhouette_avg']:.3f})",
-                   color=pastel_palette[1], alpha=0.8, edgecolor='black')
+                   color=magma_palette[1], alpha=0.8, edgecolor='black')
 
     ax.set_xlabel('Class', fontsize=12, fontweight='bold')
     ax.set_ylabel('Silhouette Coefficient', fontsize=12, fontweight='bold')
@@ -806,11 +783,11 @@ def plot_tsne_embeddings(class_features_tcga: Dict, class_features_cptac: Dict,
     # Plot
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
-    # Plot by class - use pink/magenta palette for biological classes
+    # Plot by class - use magma palette for biological classes
     unique_labels = np.unique(labels)
 
-    # Use pink/magenta palette for biological classes
-    class_colors = sns.color_palette("ch:s=-.2,r=.6", n_colors=len(unique_labels))
+    # Use magma palette for biological classes
+    class_colors = sns.color_palette("magma", n_colors=len(unique_labels))
 
     # Define different marker styles for each class
     markers = ['o', 's', '^', 'D', 'v', '<', '>', 'p', '*', 'h', 'H', '+', 'x']
@@ -828,8 +805,8 @@ def plot_tsne_embeddings(class_features_tcga: Dict, class_features_cptac: Dict,
     ax1.legend(loc='best', framealpha=0.9)
     ax1.grid(alpha=0.3)
 
-    # Plot by cohort - use blue/purple palette for cohort distinction
-    cohort_palette = sns.color_palette("ch:s=.25,rot=-.25", n_colors=2)  # Blue/purple tones
+    # Plot by cohort - use magma palette for cohort distinction
+    cohort_palette = sns.color_palette("magma", n_colors=2)
     for idx, (cohort, marker) in enumerate([('TCGA', 'o'), ('CPTAC', '^')]):
         mask = cohorts == cohort
         ax2.scatter(embeddings_2d[mask, 0], embeddings_2d[mask, 1],
@@ -875,9 +852,9 @@ def print_results(df_distances: pd.DataFrame, df_variability: pd.DataFrame,
 
     # Inter-cohort distances
     print("\n" + "-"*80)
-    print("INTER-COHORT DISTANCES (TCGA ↔ CPTAC)")
+    print("CENTROID DISTANCES (TCGA ↔ CPTAC)")
     print("-"*80)
-    print(f"{'Class':<15} {'Mean Dist':>12} {'TCGA Std':>12} {'CPTAC Std':>12} {'Ratio':>10}")
+    print(f"{'Class':<15} {'Centroid Dist':>15} {'TCGA Std':>12} {'CPTAC Std':>12} {'Ratio':>10}")
     print("-"*80)
 
     df_merged = df_distances.merge(df_variability, on='Class')
@@ -886,16 +863,16 @@ def print_results(df_distances: pd.DataFrame, df_variability: pd.DataFrame,
         if np.isnan(row['Mean_Std']) or row['Mean_Std'] == 0:
             ratio = np.nan
         else:
-            ratio = row['Mean_Distance'] / row['Mean_Std']
+            ratio = row['Centroid_Distance'] / row['Mean_Std']
 
         ratio_str = f"{ratio:>10.2f}" if not np.isnan(ratio) else "       N/A"
-        print(f"{row['Class']:<15} {row['Mean_Distance']:>12.4f} "
+        print(f"{row['Class']:<15} {row['Centroid_Distance']:>15.4f} "
               f"{row['Std_TCGA']:>12.4f} {row['Std_CPTAC']:>12.4f} {ratio_str}")
 
-    mean_distance = np.nanmean(df_distances['Mean_Distance'].values)
+    mean_distance = np.nanmean(df_distances['Centroid_Distance'].values)
     mean_std = np.nanmean(df_variability['Mean_Std'].values)
 
-    print(f"\nMean inter-cohort distance: {mean_distance:.4f}")
+    print(f"\nMean centroid distance:     {mean_distance:.4f}")
     print(f"Mean intra-class std:       {mean_std:.4f}")
 
     # Check if we can compute ratio
@@ -1003,7 +980,7 @@ def save_results(df_distances: pd.DataFrame, df_variability: pd.DataFrame,
     df_merged = df_distances.merge(df_variability, on='Class')
 
     # Select only relevant columns for CSV output
-    columns_to_save = ['Class', 'Mean_Distance', 'Std_TCGA', 'Std_CPTAC', 'Mean_Std']
+    columns_to_save = ['Class', 'Centroid_Distance', 'Std_TCGA', 'Std_CPTAC', 'Mean_Std']
     df_output = df_merged[columns_to_save].copy()
 
     # Filter out rows with NaN or Inf values
@@ -1015,7 +992,7 @@ def save_results(df_distances: pd.DataFrame, df_variability: pd.DataFrame,
     if n_before > n_after:
         print(f"  Warning: Dropped {n_before - n_after} classes with invalid values")
 
-    csv_path = output_dir / f'{task}_inter_cohort_distances.csv'
+    csv_path = output_dir / f'{task}_centroid_distances.csv'
     df_output.to_csv(csv_path, index=False, float_format='%.6f')
     print(f"  ✓ Saved: {csv_path.name}")
 
@@ -1035,7 +1012,7 @@ def save_results(df_distances: pd.DataFrame, df_variability: pd.DataFrame,
     results = {
         'task': task,
         'inter_cohort_analysis': {
-            'mean_distance': float(np.nanmean(df_distances['Mean_Distance'].values)),
+            'mean_centroid_distance': float(np.nanmean(df_distances['Centroid_Distance'].values)),
             'mean_std': float(np.nanmean(df_variability['Mean_Std'].values)),
             'per_class': df_merged.to_dict(orient='records')
         },

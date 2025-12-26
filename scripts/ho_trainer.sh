@@ -234,6 +234,14 @@ else
     EMBED_DIM=$EMBED_DIM
 fi
 
-CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --reg $REG --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K   --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict  $LABEL_DICT $DIVERSITY --weighted_sample
+if [ -z "$8" ]; then
+    echo "Please provide the eight parameter as 'YES' or 'NO' to select weighted sampling."
+    exit 1
+elif [ "$8" == "YES" ]; then
+    WEIGHTED_SAMPLING="--weighted_sampling" 
+else
+    WEIGHTED_SAMPLING=""
+fi
 
+CUDA_VISIBLE_DEVICES=$CUDA_DEV python src/ho_main.py --B $B --reg $REG --model_size $MODEL_SIZE --seed $SEED --drop_out $DROP_OUT --early_stopping --lr $LR --k $K   --bag_loss $BAG_LOSS  --inst_loss $INST_LOSS --model_type $CLAM_MODEL_TYPE --results_dir $RESULTS_DIR  --log_data --subtyping --data_root_dir_train $FEATURES_DIRECTORY_TRAIN --data_root_dir_test $FEATURES_DIRECTORY_TEST --embed_dim $EMBED_DIM --split_dir_train $SPLIT_DIR_TRAIN --split_dir_test $SPLIT_DIR_TEST --csv_path_train $CSV_FILE_TRAIN --csv_path_test $CSV_FILE_TEST --label_dict  $LABEL_DICT $DIVERSITY $WEIGHTED_SAMPLING
 

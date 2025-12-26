@@ -17,6 +17,10 @@ stain_analysis/*
 models/*
 data/histo*
 results/*
+!results/
+!results/regression_comparison/
+!results/regression_comparison/figures/
 */custom/
 */aggregated*/
 cache/*
+*.png
