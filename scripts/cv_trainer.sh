@@ -212,7 +212,7 @@ if [ -z "$8" ]; then
     echo "Please provide the eight parameter as 'YES' or 'NO' to select weighted sampling."
     exit 1
 elif [ "$8" == "YES" ]; then
-    WEIGHTED_SAMPLING="--weighted_sampling" 
+    WEIGHTED_SAMPLING="--weighted_sample" 
 else
     WEIGHTED_SAMPLING=""
 fi
